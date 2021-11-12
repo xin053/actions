@@ -1,0 +1,19 @@
+name: test
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    env:
+      test: 123
+    steps:
+      - name: test1
+        env:
+          test: 456
+        run: |
+          echo "test of step1 ${{ env.test }}"
+      - name: test2
+        run: |
+          echo "test of step2 ${{ env.test }}"
