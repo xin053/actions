@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: check for secrets needed to run demo
         run: |
-          if [ ! -z "${{ secrets.CLOUDTRUTH_API_KEY }}" ]; then
+          if [ -z "${{ secrets.CLOUDTRUTH_API_KEY }}" ]; then
             echo "test=123" >> $GITHUB_ENV
           fi
       - name: test
