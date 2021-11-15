@@ -15,5 +15,5 @@ jobs:
             echo "test=123" >> $GITHUB_ENV
           fi
       - name: test
-        if: ${{ env.test=123 }}
+        if: ${{ env.test == 123 }}
         run: echo "test ${{ env.test}}"
