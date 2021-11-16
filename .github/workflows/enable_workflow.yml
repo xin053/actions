@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          repository: 'xin053/actions'
+          repository: 'xin053/waka-box-go'
 
       - name: Enable workflow
         run: |
