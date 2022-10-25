@@ -18,8 +18,7 @@ jobs:
       - run: pip install wheel setuptools
       - run: pip wheel --wheel-dir=$HOME $HOME\PyQt5_sip-12.11.0
       - run: ls $HOME
-      - run: ls $HOME\PyQt5_sip-12.11.0
       - uses: actions/download-artifact@v3
         with:
           name: build-whl
-          path: $HOME\PyQt5_sip-12.11.0\dist
+          path: $HOME\PyQt5_sip-12.11.0-cp311-cp311-win_amd64.whl
