@@ -16,8 +16,9 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install wheel setuptools
-      - run: python $HOME\PyQt5_sip-12.11.0\setup.py bdisk_wheel
-      - run: ls $HOME\PyQt5_sip-12.11.0\dist
+      - run: pip wheel -w, -wheel-dir $HOME\PyQt5_sip-12.11.0
+      - run: ls $HOME
+      - run: ls $HOME\PyQt5_sip-12.11.0
       - uses: actions/download-artifact@v3
         with:
           name: build-whl
