@@ -11,7 +11,7 @@ jobs:
           bitsadmin /transfer myDownLoadJob /download /priority normal "https://files.pythonhosted.org/packages/39/5f/fd9384fdcb9cd0388088899c110838007f49f5da1dd1ef6749bfb728a5da/PyQt5_sip-12.11.0.tar.gz" "$HOME/PyQt5_sip-12.11.0.tar.gz" 
       - name: tar zvxf file
         run: |
-          tar zvxf $HOME\PyQt5_sip-12.11.0.tar.gz
+          tar zvxf $HOME\PyQt5_sip-12.11.0.tar.gz -C $HOME
       - run: ls $HOME
       - run: ls $HOME\PyQt5_sip-12.11.0
       - uses: actions/setup-python@v4
