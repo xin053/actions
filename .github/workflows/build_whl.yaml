@@ -21,4 +21,4 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: PyQt5_sip-12.11.0-cp311-cp311-win_amd64.whl
-          path: $HOME\PyQt5_sip-12.11.0-cp311-cp311-win_amd64.whl
+          path: C:\Users\runneradmin\PyQt5_sip-12.11.0-cp311-cp311-win_amd64.whl
