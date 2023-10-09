@@ -8,17 +8,17 @@ jobs:
     steps:
       - name: download file
         run: |
-          bitsadmin /transfer myDownLoadJob /download /priority normal "https://files.pythonhosted.org/packages/39/5f/fd9384fdcb9cd0388088899c110838007f49f5da1dd1ef6749bfb728a5da/PyQt5_sip-12.11.0.tar.gz" "$HOME/PyQt5_sip-12.11.0.tar.gz" 
+          bitsadmin /transfer myDownLoadJob /download /priority normal "https://files.pythonhosted.org/packages/99/61/6954ff8f8ab550a8fec56a2f29be362f281ee71b6edc7615b905adb0e6a9/PyQt5_sip-12.12.2.tar.gz" "$HOME/PyQt5_sip-12.12.2.tar.gz" 
       - name: tar zvxf file
         run: |
-          tar zvxf $HOME\PyQt5_sip-12.11.0.tar.gz -C $HOME
+          tar zvxf $HOME\PyQt5_sip-12.12.2.tar.gz -C $HOME
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.12'
       - run: pip install wheel setuptools
-      - run: pip wheel --wheel-dir=$HOME $HOME\PyQt5_sip-12.11.0
+      - run: pip wheel --wheel-dir=$HOME $HOME\PyQt5_sip-12.12.2
       - run: ls $HOME
       - uses: actions/upload-artifact@v3
         with:
-          name: PyQt5_sip-12.11.0-cp311-cp311-win_amd64.whl
-          path: C:\Users\runneradmin\PyQt5_sip-12.11.0-cp311-cp311-win_amd64.whl
+          name: PyQt5_sip-12.12.2-cp312-cp312-win_amd64.whl
+          path: C:\Users\runneradmin\PyQt5_sip-12.12.2-cp312-cp312-win_amd64.whl
