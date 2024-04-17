@@ -50,8 +50,12 @@ jobs:
           tag: ${{ needs.check.outputs.netbootxyz_release }}
           fileName: "*"
           out-file-path: "netbootxyz"
+      - name: pwd
+        run: pwd
       - name: Ls
         run: ls -alh $GITHUB_WORKSPACE
+      - name: Ls1
+        run: ls -alh $GITHUB_WORKSPACE/netbootxyz
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to Docker Hub
@@ -62,6 +66,6 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: $GITHUB_WORKSPACE/netbootxyz
+          context: ${{ github.workspace }}/netbootxyz
           push: true
           tags: xin053/netbootxyz-files:${{ needs.check.outputs.netbootxyz_release }}
