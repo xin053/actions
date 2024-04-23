@@ -15,18 +15,30 @@ jobs:
 
       - name: Install packages
         run: "sudo apt update && sudo apt install -y qemu-utils qemu-system ovmf cloud-image-utils libnbd-bin nbdkit fuse2fs parted make tree"
+
+      - name: Install packer
+        run: |
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install packer
     
       - name: Git clone maas-images
         run: "sudo git clone https://git.launchpad.net/maas-images --recurse-submodules"
 
       - name: Setup maas-images env
         run: "sudo bash $GITHUB_WORKSPACE/maas-images/system-setup"
-          
-      - name: Setup `packer`
-        uses: hashicorp/setup-packer@main
 
       - name: Build image
         run: "sudo mkdir -p $GITHUB_WORKSPACE/maas-images/output && sudo $GITHUB_WORKSPACE/maas-images/bin/meph2-import packer-maas.yaml $GITHUB_WORKSPACE/maas-images/output"
 
       - name: List files
         run: "sudo tree -L 3"
+
+      - name: Tar files
+        run: "sudo tar zvcf centos7.tar.gz $GITHUB_WORKSPACE/maas-images/output"
+
+      - name: Upload to release file
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            centos7.tar.gz
