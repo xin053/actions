@@ -14,7 +14,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Install packages
-        run: "apt update && apt install -y qemu-utils qemu-system ovmf cloud-image-utils libnbd-bin nbdkit fuse2fs parted make tree"
+        run: "sudo apt update && sudo apt install -y qemu-utils qemu-system ovmf cloud-image-utils libnbd-bin nbdkit fuse2fs parted make tree"
     
       - name: Checkout tools repo
         uses: actions/checkout@v4
@@ -23,13 +23,13 @@ jobs:
           github-server-url: 'https://git.launchpad.net'
 
       - name: Setup maas-images env
-        run: "./system-setup"
+        run: "sudo ./system-setup"
           
       - name: Setup `packer`
         uses: hashicorp/setup-packer@main
 
       - name: Build image
-        run: "mkdir $GITHUB_WORKSPACE/output && ./bin/meph2-import packer-maas.yaml $GITHUB_WORKSPACE/output"
+        run: "sudo mkdir $GITHUB_WORKSPACE/output && sudo ./bin/meph2-import packer-maas.yaml $GITHUB_WORKSPACE/output"
 
       - name: List files
-        run: "tree -L 3"
+        run: "sudo tree -L 3"
