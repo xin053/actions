@@ -29,7 +29,7 @@ jobs:
         run: "sudo bash $GITHUB_WORKSPACE/maas-images/system-setup"
 
       - name: Build image
-        run: "sudo mkdir -p $GITHUB_WORKSPACE/maas-images/output && sudo $GITHUB_WORKSPACE/maas-images/bin/meph2-import packer-maas.yaml $GITHUB_WORKSPACE/maas-images/output"
+        run: "sudo mkdir -p $GITHUB_WORKSPACE/maas-images/output && sudo $GITHUB_WORKSPACE/maas-images/bin/meph2-import -u packer-maas.yaml $GITHUB_WORKSPACE/maas-images/output"
 
       - name: List files
         run: "sudo tree -L 3"
