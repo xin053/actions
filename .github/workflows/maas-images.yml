@@ -16,11 +16,8 @@ jobs:
       - name: Install packages
         run: "sudo apt update && sudo apt install -y qemu-utils qemu-system ovmf cloud-image-utils libnbd-bin nbdkit fuse2fs parted make tree"
     
-      - name: Checkout tools repo
-        uses: actions/checkout@v4
-        with:
-          repository: maas-images
-          github-server-url: 'https://git.launchpad.net'
+      - name: Git clone maas-images
+        run: "sudo git clone https://git.launchpad.net/maas-images --recurse-submodules && cd maas-images"
 
       - name: Setup maas-images env
         run: "sudo ./system-setup"
