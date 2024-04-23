@@ -17,16 +17,16 @@ jobs:
         run: "sudo apt update && sudo apt install -y qemu-utils qemu-system ovmf cloud-image-utils libnbd-bin nbdkit fuse2fs parted make tree"
     
       - name: Git clone maas-images
-        run: "sudo git clone https://git.launchpad.net/maas-images --recurse-submodules && cd maas-images"
+        run: "sudo git clone https://git.launchpad.net/maas-images --recurse-submodules"
 
       - name: Setup maas-images env
-        run: "sudo ./system-setup"
+        run: "sudo bash $GITHUB_WORKSPACE/maas-images/system-setup"
           
       - name: Setup `packer`
         uses: hashicorp/setup-packer@main
 
       - name: Build image
-        run: "sudo mkdir $GITHUB_WORKSPACE/output && sudo ./bin/meph2-import packer-maas.yaml $GITHUB_WORKSPACE/output"
+        run: "sudo mkdir -p $GITHUB_WORKSPACE/maas-images/output && sudo $GITHUB_WORKSPACE/maas-images/bin/meph2-import packer-maas.yaml $GITHUB_WORKSPACE/maas-images/output"
 
       - name: List files
         run: "sudo tree -L 3"
