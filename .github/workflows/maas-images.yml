@@ -1,0 +1,35 @@
+name: maas-images
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: enable KVM for linux runners
+        if: runner.os == 'Linux'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install packages
+        run: "apt update && apt install -y qemu-utils qemu-system ovmf cloud-image-utils libnbd-bin nbdkit fuse2fs parted make tree"
+    
+      - name: Checkout tools repo
+        uses: actions/checkout@v4
+        with:
+          repository: maas-images
+          github-server-url: 'https://git.launchpad.net'
+
+      - name: Setup maas-images env
+        run: "./system-setup"
+          
+      - name: Setup `packer`
+        uses: hashicorp/setup-packer@main
+
+      - name: Build image
+        run: "mkdir $GITHUB_WORKSPACE/output && ./bin/meph2-import packer-maas.yaml $GITHUB_WORKSPACE/output"
+
+      - name: List files
+        run: "tree -L 3"
