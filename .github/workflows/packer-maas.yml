@@ -1,4 +1,4 @@
-name: maas-images
+name: packer-maas
 on:
   workflow_dispatch:
     inputs:
