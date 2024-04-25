@@ -1,0 +1,68 @@
+name: maas-images
+on:
+  workflow_dispatch:
+    inputs:
+      image-type:
+        description: "Which image to build"
+        required: true
+        type: string
+      image-version:
+        description: "Which image version to build"
+        required: false
+        type: string
+      boot-mode:
+        description: "Which boot mode image to build"
+        required: false
+        type: choice
+        options: 
+          - uefi
+          - bios
+      windows-iso:
+        description: "windows iso"
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        
+      - name: enable KVM for linux runners
+        if: runner.os == 'Linux'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install packages
+        run: "sudo apt update && sudo apt install -y qemu-utils qemu-system ovmf cloud-image-utils libnbd-bin nbdkit fuse2fs parted make tree"
+
+      - name: Install packer
+        run: |
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install packer
+    
+      - name: Checkout packer-maas
+        uses: actions/checkout@v4
+        with:
+          repository: canonical/packer-maas
+
+      - name: Build image
+        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && sudo packer init . && sudo VERSION=${{ github.event.inputs.image-version }} BOOT=${{ github.event.inputs.boot-mode }} ISO=${{ github.event.inputs.windows-iso }} make all"
+
+      - name: List files
+        run: "ls -alh $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }}"
+
+      - name: Tar files
+        run: "sudo tar zvcf centos7.tar.gz $GITHUB_WORKSPACE/maas-images/output"
+
+      - name: Upload to release file
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.event.inputs.image-type }}-${{ github.event.inputs.image-version }}-${{ steps.date.outputs.date }}
+          files: |
+            *.gz
