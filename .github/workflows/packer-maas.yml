@@ -26,6 +26,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout packer-maas
+        uses: actions/checkout@v4
+        with:
+          repository: canonical/packer-maas
+          path: $GITHUB_WORKSPACE/packer-maas
+          
+      - name: List files
+        run: "ls -alh $GITHUB_WORKSPACE/packer-maas && exit 1"
+      
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
