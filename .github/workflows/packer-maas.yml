@@ -50,6 +50,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: canonical/packer-maas
+          path: $GITHUB_WORKSPACE/packer-maas
 
       - name: Build image
         run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && sudo packer init . && sudo VERSION=${{ github.event.inputs.image-version }} BOOT=${{ github.event.inputs.boot-mode }} ISO=${{ github.event.inputs.windows-iso }} make all"
