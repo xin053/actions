@@ -3,11 +3,15 @@ on:
   workflow_dispatch:
     inputs:
       image-type:
-        description: "Which image to build"
+        description: "Which image to build (packer-maas directory)"
         required: true
         type: string
       image-version:
-        description: "Which image version to build"
+        description: "Which image version to build (used for ubuntu,debian,windows)"
+        required: true
+        type: string
+      image-description:
+        description: "Image description (used to generate release description)"
         required: true
         type: string
       boot-mode:
@@ -53,15 +57,18 @@ jobs:
           path: packer-maas
 
       - name: Build image
-        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && sudo packer init . && sudo VERSION=${{ github.event.inputs.image-version }} BOOT=${{ github.event.inputs.boot-mode }} ISO=${{ github.event.inputs.windows-iso }} make all"
+        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && sudo packer init . && sudo SERIES=${{ github.event.inputs.image-version }} VERSION=${{ github.event.inputs.image-version }} BOOT=${{ github.event.inputs.boot-mode }} ISO=${{ github.event.inputs.windows-iso }} make all"
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }}"
 
+      - name: Rename files
+        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && for file in *.gz; do sudo mv $file ${{ github.event.inputs.image-description }}_$file; done"
+
       - name: Upload to release file
         uses: softprops/action-gh-release@v2
         with:
-          name: maas_${{ github.event.inputs.image-type }}_${{ github.event.inputs.image-version }}_${{ steps.date.outputs.date }}
-          tag_name: maas_${{ github.event.inputs.image-type }}_${{ github.event.inputs.image-version }}_${{ steps.date.outputs.date }}
+          name: maas_${{ github.event.inputs.image-description }}_${{ steps.date.outputs.date }}
+          tag_name: maas_${{ github.event.inputs.image-description }}_${{ steps.date.outputs.date }}
           files: |
             ./packer-maas/${{ github.event.inputs.image-type }}/*.gz
