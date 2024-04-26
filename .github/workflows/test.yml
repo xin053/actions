@@ -1,19 +1,16 @@
 name: test
 on:
-  push:
   workflow_dispatch:
 
 jobs:
   job1:
-    env:
-      test: 456
     runs-on: ubuntu-latest
     steps:
-      - name: check for secrets needed to run demo
-        run: |
-          if [ -z "${{ secrets.CLOUDTRUTH_API_KEY }}" ]; then
-            echo "test=123" >> $GITHUB_ENV
-          fi
-      - name: test
-        if: ${{ env.test == 123 }}
-        run: echo "test ${{ env.test}}"
+      - name: test1
+        run: echo "1" > $GITHUB_WORKSPACE/rocky9.tar.gz
+      - name: Upload to release file
+        uses: softprops/action-gh-release@v2
+        with:
+          name: test
+          tag_name: test
+            ./*.gz
