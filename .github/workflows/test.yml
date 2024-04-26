@@ -11,6 +11,7 @@ jobs:
       - name: Upload to release file
         uses: softprops/action-gh-release@v2
         with:
-          name: UserBuild_2024.04.26_11
-          tag_name: UserBuild_2024.04.26_11
+          name: test
+          tag_name: test
+          files: |
             ./*.gz
