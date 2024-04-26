@@ -64,4 +64,4 @@ jobs:
           name: maas_${{ github.event.inputs.image-type }}-${{ github.event.inputs.image-version }}-${{ steps.date.outputs.date }}
           tag_name: maas_${{ github.event.inputs.image-type }}-${{ github.event.inputs.image-version }}-${{ steps.date.outputs.date }}
           files: |
-            $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }}/*.gz
+            ./packer-maas/${{ github.event.inputs.image-type }}/*.gz
