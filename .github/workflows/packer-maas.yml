@@ -8,7 +8,7 @@ on:
         type: string
       image-version:
         description: "Which image version to build"
-        required: false
+        required: true
         type: string
       boot-mode:
         description: "Which boot mode image to build"
@@ -61,7 +61,7 @@ jobs:
       - name: Upload to release file
         uses: softprops/action-gh-release@v2
         with:
-          name: maas_${{ github.event.inputs.image-type }}-${{ github.event.inputs.image-version }}-${{ steps.date.outputs.date }}
-          tag_name: maas_${{ github.event.inputs.image-type }}-${{ github.event.inputs.image-version }}-${{ steps.date.outputs.date }}
+          name: maas_${{ github.event.inputs.image-type }}_${{ github.event.inputs.image-version }}_${{ steps.date.outputs.date }}
+          tag_name: maas_${{ github.event.inputs.image-type }}_${{ github.event.inputs.image-version }}_${{ steps.date.outputs.date }}
           files: |
             ./packer-maas/${{ github.event.inputs.image-type }}/*.gz
