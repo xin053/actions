@@ -28,12 +28,7 @@ jobs:
     steps:
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-
-      - name: Generate release tag
-        id: tag
-        run: |
-          echo "::set-output name=release_tag::UserBuild_$(date +"%Y.%m.%d_%H-%M")"
+        run: echo "date=$(date +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
         
       - name: enable KVM for linux runners
         if: runner.os == 'Linux'
@@ -66,7 +61,7 @@ jobs:
       - name: Upload to release file
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ github.event.inputs.image-type }}-${{ github.event.inputs.image-version }}-${{ steps.date.outputs.date }}
-          tag_name: ${{ steps.tag.outputs.release_tag }}
+          name: maas_${{ github.event.inputs.image-type }}-${{ github.event.inputs.image-version }}-${{ steps.date.outputs.date }}
+          tag_name: maas_${{ github.event.inputs.image-type }}-${{ github.event.inputs.image-version }}-${{ steps.date.outputs.date }}
           files: |
             $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }}/*.gz
