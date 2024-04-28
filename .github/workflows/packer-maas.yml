@@ -51,10 +51,25 @@ jobs:
           sudo apt update && sudo apt install packer
     
       - name: Checkout packer-maas
+        if: github.event.inputs.image-version != 'windows'
         uses: actions/checkout@v4
         with:
           repository: canonical/packer-maas
           path: packer-maas
+
+      - name: Checkout packer-maas
+        if: github.event.inputs.image-version == 'windows'
+        uses: actions/checkout@v4
+        with:
+          repository: canonical/packer-maas
+          path: packer-maas
+          ref: windows
+
+      - name: Cache packer image
+        uses: actions/cache@v3
+        with:
+          path: /root/.cache/packer/
+          key: ${{ runner.os }}_packer-maas_base-images
 
       - name: Build image
         run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && sudo packer init . && sudo SERIES=${{ github.event.inputs.image-version }} VERSION=${{ github.event.inputs.image-version }} BOOT=${{ github.event.inputs.boot-mode }} ISO=${{ github.event.inputs.windows-iso }} make all"
@@ -63,7 +78,7 @@ jobs:
         run: "ls -alh $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }}"
 
       - name: Rename files
-        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && for file in *.gz; do sudo mv $file ${{ github.event.inputs.image-description }}_$file; done"
+        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && for file in *.gz; do if [[ $(stat --printf='%s' $file) -gt 2147483648 ]]; then sudo split --bytes=2G --numeric-suffixes=1 $file ${{ github.event.inputs.image-description }}_$file.part; else sudo mv $file ${{ github.event.inputs.image-description }}_$file;fi;done"
 
       - name: Upload to release file
         uses: softprops/action-gh-release@v2
@@ -72,3 +87,4 @@ jobs:
           tag_name: maas_${{ github.event.inputs.image-description }}_${{ steps.date.outputs.date }}
           files: |
             ./packer-maas/${{ github.event.inputs.image-type }}/*.gz
+            ./packer-maas/${{ github.event.inputs.image-type }}/*.gz.part*
