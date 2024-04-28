@@ -41,6 +41,10 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Windows hack
+        if: github.event.inputs.image-type == 'windows'
+        run: "wget ${{ github.event.inputs.windows-iso }} && ls -alh && exit 1"
+
       - name: Install packages
         run: "sudo apt update && sudo apt install -y qemu-utils qemu-system ovmf cloud-image-utils libnbd-bin nbdkit fuse2fs parted make tree"
 
