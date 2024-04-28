@@ -76,7 +76,7 @@ jobs:
           key: ${{ runner.os }}_packer-maas_base-images
 
       - name: Build image
-        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && sudo packer init . && sudo PACKER_LOG=1 SERIES=${{ github.event.inputs.image-version }} VERSION=${{ github.event.inputs.image-version }} BOOT=${{ github.event.inputs.boot-mode }} ISO=${{ github.event.inputs.windows-iso }} make all"
+        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && sudo packer init . && sudo PACKER_LOG=1 HEADLESS=true SERIES=${{ github.event.inputs.image-version }} VERSION=${{ github.event.inputs.image-version }} BOOT=${{ github.event.inputs.boot-mode }} ISO=${{ github.event.inputs.windows-iso }} make all"
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }}"
