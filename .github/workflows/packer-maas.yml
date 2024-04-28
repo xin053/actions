@@ -51,19 +51,23 @@ jobs:
           sudo apt update && sudo apt install packer
     
       - name: Checkout packer-maas
-        if: github.event.inputs.image-version != 'windows'
+        if: github.event.inputs.image-type != 'windows'
         uses: actions/checkout@v4
         with:
           repository: canonical/packer-maas
           path: packer-maas
 
       - name: Checkout packer-maas
-        if: github.event.inputs.image-version == 'windows'
+        if: github.event.inputs.image-type == 'windows'
         uses: actions/checkout@v4
         with:
           repository: canonical/packer-maas
           path: packer-maas
           ref: windows
+
+      - name: Windows hack
+        if: github.event.inputs.image-type == 'windows'
+        run: "sed -i s#SERVERSTANDARD#SERVERDATACENTER#g $GITHUB_WORKSPACE/packer-maas/windows/Makefile"
 
       - name: Cache packer image
         uses: actions/cache@v3
