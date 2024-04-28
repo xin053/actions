@@ -41,10 +41,6 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Windows hack
-        if: github.event.inputs.image-type == 'windows'
-        run: "wget ${{ github.event.inputs.windows-iso }} && ls -alh && exit 1"
-
       - name: Install packages
         run: "sudo apt update && sudo apt install -y qemu-utils qemu-system ovmf cloud-image-utils libnbd-bin nbdkit fuse2fs parted make tree"
 
@@ -80,7 +76,7 @@ jobs:
           key: ${{ runner.os }}_packer-maas_base-images
 
       - name: Build image
-        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && sudo packer init . && sudo SERIES=${{ github.event.inputs.image-version }} VERSION=${{ github.event.inputs.image-version }} BOOT=${{ github.event.inputs.boot-mode }} ISO=${{ github.event.inputs.windows-iso }} make all"
+        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && sudo packer init . && sudo PACKER_LOG=1 SERIES=${{ github.event.inputs.image-version }} VERSION=${{ github.event.inputs.image-version }} BOOT=${{ github.event.inputs.boot-mode }} ISO=${{ github.event.inputs.windows-iso }} make all"
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }}"
