@@ -22,7 +22,18 @@ on:
           - uefi
           - bios
       windows-iso:
-        description: "windows iso"
+        description: "Windows iso url"
+        required: false
+        type: string
+      packer-log:
+        description: "PACKER_LOG for packer"
+        required: false
+        type: choice
+        options: 
+          - "0"
+          - "1"
+      custom-build-command:
+        description: "Custom build command"
         required: false
         type: string
 
@@ -75,8 +86,13 @@ jobs:
           path: /root/.cache/packer/
           key: ${{ runner.os }}_packer-maas_base-images
 
-      - name: Build image
-        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && sudo packer init . && sudo PACKER_LOG=1 HEADLESS=true SERIES=${{ github.event.inputs.image-version }} VERSION=${{ github.event.inputs.image-version }} BOOT=${{ github.event.inputs.boot-mode }} ISO=${{ github.event.inputs.windows-iso }} make all"
+      - name: Build image using make
+        if: github.event.inputs.custom-build-command == ''
+        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && sudo packer init . && sudo HEADLESS=true PACKER_LOG=${{ github.event.inputs.packer-log }} SERIES=${{ github.event.inputs.image-version }} VERSION=${{ github.event.inputs.image-version }} BOOT=${{ github.event.inputs.boot-mode }} ISO=${{ github.event.inputs.windows-iso }} make all"
+
+      - name: Build image using custom-build-command
+        if: github.event.inputs.custom-build-command != ''
+        run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && sudo packer init . && sudo ${{ github.event.inputs.custom-build-command }}"
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }}"
