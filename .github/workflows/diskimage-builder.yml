@@ -38,6 +38,7 @@ jobs:
           repository: xin053/mye-scripts
           path: mye-scripts
           ref: 'master'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build image
         run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts ${{ github.event.inputs.build-param }} bash ./build_image.sh"
