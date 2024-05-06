@@ -14,9 +14,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      contents: read
     steps:
       - name: Echo build-param
         run: echo ${{ github.event.inputs.build-param }}
@@ -48,6 +45,9 @@ jobs:
 
       - name: Rename files
         run: "cd $GITHUB_WORKSPACE/mye-scripts && for file in *.qcow2 *.raw; do if [ -f $file ]; then if [[ $(stat --printf='%s' $file) -gt 2147483648 ]]; then sudo split --bytes=2G --numeric-suffixes=1 $file ${{ github.event.inputs.image-description }}_$file.part; else sudo mv $file ${{ github.event.inputs.image-description }}_$file;fi;fi;done"
+
+      - name: List files again
+        run: "ls -alh $GITHUB_WORKSPACE/mye-scripts"
 
       - name: Upload to release file
         uses: softprops/action-gh-release@v2
