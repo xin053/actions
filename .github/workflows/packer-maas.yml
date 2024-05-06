@@ -100,6 +100,9 @@ jobs:
       - name: Rename files
         run: "cd $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }} && for file in *.gz; do if [[ $(stat --printf='%s' $file) -gt 2147483648 ]]; then sudo split --bytes=2G --numeric-suffixes=1 $file ${{ github.event.inputs.image-description }}_$file.part; else sudo mv $file ${{ github.event.inputs.image-description }}_$file;fi;done"
 
+      - name: List files again
+        run: "ls -alh $GITHUB_WORKSPACE/packer-maas/${{ github.event.inputs.image-type }}"
+
       - name: Upload to release file
         uses: softprops/action-gh-release@v2
         with:
