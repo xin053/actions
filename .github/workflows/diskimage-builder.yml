@@ -15,6 +15,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Echo build-param
+        run: echo ${{ github.event.inputs.build-param }}
+        
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
@@ -31,6 +34,7 @@ jobs:
         with:
           repository: xin053/mye-scripts
           path: mye-scripts
+          ref: 'master'
 
       - name: Build image
         run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts ${{ github.event.inputs.build-param }} bash ./build_image.sh"
