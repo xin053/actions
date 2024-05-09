@@ -10,6 +10,13 @@ on:
         description: "Image description (used to generate release description)"
         required: true
         type: string
+      image-format:
+        description: "Image format"
+        required: true
+        type: choice
+        options: 
+          - qcow2
+          - raw
 
 jobs:
   build:
@@ -38,7 +45,7 @@ jobs:
           token: ${{ secrets.MY_GITHUB_TOKEN }}
 
       - name: Build image
-        run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts ${{ github.event.inputs.build-param }} bash ./build_image.sh"
+        run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/mye-scripts"
