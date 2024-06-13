@@ -105,7 +105,13 @@ jobs:
         run: "ls -alh $GITHUB_WORKSPACE/mye-scripts"
 
       - name: Rename files
-        run: "cd $GITHUB_WORKSPACE/mye-scripts && for file in *.qcow2 *.raw *.vmlinuz *.initrd; do if [ -f $file ]; then md5sum $file >> md5sum.txt; if [[ $(stat --printf='%s' $file) -gt 2147483648 ]]; then sudo split --bytes=2G --numeric-suffixes=1 $file ${{ github.event.inputs.image-description }}_$file.part; else sudo mv $file ${{ github.event.inputs.image-description }}_$file;fi;fi;done"
+        run: "cd $GITHUB_WORKSPACE/mye-scripts && for file in *.qcow2 *.raw *.vmlinuz *.initrd; do if [ -f $file ]; then if [[ $(stat --printf='%s' $file) -gt 2147483648 ]]; then sudo split --bytes=2G --numeric-suffixes=1 $file ${{ github.event.inputs.image-description }}_$file.part && sudo rm -f $file; else sudo mv $file ${{ github.event.inputs.image-description }}_$file;fi;fi;done"
+
+      - name: Md5sum
+        run: |
+          cd $GITHUB_WORKSPACE/mye-scripts
+          echo "md5sum:" >> md5sum.txt
+          for file in *.qcow2* *.raw* *.vmlinuz* *.initrd*; do if [ -f $file ]; then md5sum $file >> md5sum.txt;fi;done
 
       - name: List files again
         run: "ls -alh $GITHUB_WORKSPACE/mye-scripts"
