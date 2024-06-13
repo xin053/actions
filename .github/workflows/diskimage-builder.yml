@@ -95,7 +95,7 @@ jobs:
         id: image
         run: |
           IFS='-' read -ra parts <<< ${{ github.event.inputs.image-version }}
-          echo "image_type=$(echo '${parts[0]}' | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
+          echo "image_type=$(echo ${parts[0]} | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
           echo "image_version=${parts[-1]}" >> $GITHUB_OUTPUT
       
       - name: Build image
