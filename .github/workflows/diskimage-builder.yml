@@ -16,49 +16,29 @@ on:
           - debian
           - fedora
           - rocky
-      ubuntu-release:
-        description: "Which ubuntu image version to build"
+      image-version:
+        description: "Which image version to build"
         required: true
         type: choice
         options: 
-          - noble
-          - jammy
-          - focal
-          - bionic
-          - xenial
-      centos-release:
-        description: "Which centos image version to build"
-        required: true
-        type: choice
-        options: 
-          - "8"
-          - "7"
-      debian-release:
-        description: "Which debian image version to build"
-        required: true
-        type: choice
-        options: 
-          - bookworm
-          - bullseye
-          - buster
-          - stretch
-      fedora-release:
-        description: "Which fedora image version to build"
-        required: true
-        type: choice
-        options: 
-          - "40"
-          - "39"
-          - "38"
-          - "37"
-          - "36"
-      rocky-release:
-        description: "Which rocky image version to build"
-        required: true
-        type: choice
-        options: 
-          - "9"
-          - "8"
+          - ubuntu-24.04-noble
+          - ubuntu-22.04-jammy
+          - ubuntu-20.04-focal
+          - ubuntu-18.04-bionic
+          - ubuntu-16.04-xenial
+          - centos-8
+          - centos-7
+          - debian-12-bookworm
+          - debian-11-bullseye
+          - debian-10-buster
+          - debian-9-stretch
+          - fedora-40
+          - fedora-39
+          - fedora-38
+          - fedora-37
+          - fedora-36
+          - rocky-9
+          - rocky-8
       boot-mode:
         description: "Boot mode"
         required: true
@@ -111,8 +91,15 @@ jobs:
           ref: 'master'
           token: ${{ secrets.MY_GITHUB_TOKEN }}
 
+      - name: Get image version
+        id: image
+        run: |
+          IFS='-' read -ra parts <<< ${{ github.event.inputs.image-version }}
+          echo "image_type=$(echo '${parts[0]}' | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
+          echo "image_version=${parts[-1]}" >> $GITHUB_OUTPUT
+      
       - name: Build image
-        run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ github.event.inputs.image-type }} UBUNTU_RELEASE=${{ github.event.inputs.ubuntu-release }} CENTOS_RELEASE=${{ github.event.inputs.centos-release }} DEBIAN_RELEASE=${{ github.event.inputs.debian-release }} FEDORA_RELEASE=${{ github.event.inputs.fedora-release }} ROCKY_RELEASE=${{ github.event.inputs.rocky-release }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"
+        run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ github.event.inputs.image-type }} ${{ steps.image.outputs.image_type }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/mye-scripts"
