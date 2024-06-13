@@ -2,14 +2,70 @@ name: diskimage-builder
 on:
   workflow_dispatch:
     inputs:
-      build-param:
-        description: "Param of build_images.sh"
-        required: false
-        type: string
       image-description:
         description: "Image description (used to generate release description)"
         required: true
         type: string
+      image-type:
+        description: "Which image type to build"
+        required: true
+        type: choice
+        options: 
+          - ubuntu
+          - centos
+          - debian
+          - fedora
+          - rocky
+      ubuntu-release:
+        description: "Which ubuntu image version to build"
+        required: true
+        type: choice
+        options: 
+          - noble
+          - jammy
+          - focal
+          - bionic
+          - xenial
+      centos-release:
+        description: "Which centos image version to build"
+        required: true
+        type: choice
+        options: 
+          - "8"
+          - "7"
+      debian-release:
+        description: "Which debian image version to build"
+        required: true
+        type: choice
+        options: 
+          - bookworm
+          - bullseye
+          - buster
+          - stretch
+      fedora-release:
+        description: "Which fedora image version to build"
+        required: true
+        type: choice
+        options: 
+          - "40"
+          - "39"
+          - "38"
+          - "37"
+          - "36"
+      rocky-release:
+        description: "Which rocky image version to build"
+        required: true
+        type: choice
+        options: 
+          - "9"
+          - "8"
+      boot-mode:
+        description: "Boot mode"
+        required: true
+        type: choice
+        options: 
+          - bios
+          - uefi
       image-format:
         description: "Image format"
         required: true
@@ -17,6 +73,17 @@ on:
         options: 
           - qcow2
           - raw
+      ironic-partition-image:
+        description: "Build ironic partition image or not"
+        required: true
+        type: choice
+        options: 
+          - no
+          - yes
+      build-param:
+        description: "Param of build_images.sh"
+        required: false
+        type: string
 
 jobs:
   build:
@@ -45,7 +112,7 @@ jobs:
           token: ${{ secrets.MY_GITHUB_TOKEN }}
 
       - name: Build image
-        run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"
+        run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ github.event.inputs.image-type }} UBUNTU_RELEASE=${{ github.event.inputs.ubuntu-release }} CENTOS_RELEASE=${{ github.event.inputs.centos-release }} DEBIAN_RELEASE=${{ github.event.inputs.debian-release }} FEDORA_RELEASE=${{ github.event.inputs.fedora-release }} ROCKY_RELEASE=${{ github.event.inputs.rocky-release }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/mye-scripts"
