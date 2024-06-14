@@ -55,7 +55,14 @@ on:
           - raw
       ironic-partition-image:
         description: "Build ironic partition image or not"
-        required: true
+        required: false
+        type: choice
+        options: 
+          - no
+          - yes
+      fedora-v2v-image:
+        description: "Build fedora v2v image or not"
+        required: false
         type: choice
         options: 
           - no
@@ -99,7 +106,7 @@ jobs:
           echo "image_version=${parts[-1]}" >> $GITHUB_OUTPUT
       
       - name: Build image
-        run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ github.event.inputs.image-type }} ${{ steps.image.outputs.image_type }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"
+        run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ github.event.inputs.image-type }} ${{ steps.image.outputs.image_type }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} FEDORA_V2V=${{ github.event.inputs.fedora-v2v-image }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/mye-scripts"
