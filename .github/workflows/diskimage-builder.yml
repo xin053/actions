@@ -104,6 +104,7 @@ jobs:
           IFS='-' read -ra parts <<< ${{ github.event.inputs.image-version }}
           echo "image_type=$(echo ${parts[0]} | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
           echo "image_version=${parts[-1]}" >> $GITHUB_OUTPUT
+          echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}" >> $GITHUB_OUTPUT
       
       - name: Build image
         run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ github.event.inputs.image-type }} ${{ steps.image.outputs.image_type }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} FEDORA_V2V=${{ github.event.inputs.fedora-v2v-image }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"
@@ -112,7 +113,7 @@ jobs:
         run: "ls -alh $GITHUB_WORKSPACE/mye-scripts"
 
       - name: Rename files
-        run: "cd $GITHUB_WORKSPACE/mye-scripts && for file in *.qcow2 *.raw *.vmlinuz *.initrd; do if [ -f $file ]; then if [[ $(stat --printf='%s' $file) -gt 2147483648 ]]; then sudo split --bytes=2G --numeric-suffixes=1 $file ${{ github.event.inputs.image-description }}_$file.part && sudo rm -f $file; else sudo mv $file ${{ github.event.inputs.image-description }}_$file;fi;fi;done"
+        run: "cd $GITHUB_WORKSPACE/mye-scripts && for file in *.qcow2 *.raw *.vmlinuz *.initrd; do if [ -f $file ]; then if [[ $(stat --printf='%s' $file) -gt 2147483648 ]]; then sudo split --bytes=2G --numeric-suffixes=1 $file ${{ steps.image.outputs.image_description }}_$file.part && sudo rm -f $file; else sudo mv $file ${{ steps.image.outputs.image_description }}_$file;fi;fi;done"
 
       - name: Md5sum
         run: |
@@ -126,8 +127,8 @@ jobs:
       - name: Upload to release file
         uses: softprops/action-gh-release@v2
         with:
-          name: dib_${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_${{ steps.date.outputs.date }}
-          tag_name: dib_${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_${{ steps.date.outputs.date }}
+          name: dib_${{ steps.image.outputs.image_description }}_${{ steps.date.outputs.date }}
+          tag_name: dib_${{ steps.image.outputs.image_description }}_${{ steps.date.outputs.date }}
           body_path: ${{ github.workspace }}/mye-scripts/md5sum.txt
           files: |
             ./mye-scripts/*.qcow2
