@@ -126,8 +126,8 @@ jobs:
       - name: Upload to release file
         uses: softprops/action-gh-release@v2
         with:
-          name: dib_${{ github.event.inputs.image-description }}_${{ steps.date.outputs.date }}
-          tag_name: dib_${{ github.event.inputs.image-description }}_${{ steps.date.outputs.date }}
+          name: dib_${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_${{ steps.date.outputs.date }}
+          tag_name: dib_${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_${{ steps.date.outputs.date }}
           body_path: ${{ github.workspace }}/mye-scripts/md5sum.txt
           files: |
             ./mye-scripts/*.qcow2
