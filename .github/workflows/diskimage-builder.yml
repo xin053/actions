@@ -6,21 +6,11 @@ on:
         description: "Image description (used to generate release description)"
         required: true
         type: string
-      image-type:
-        description: "Which image type to build"
-        required: true
-        type: choice
-        options: 
-          - ubuntu
-          - centos
-          - debian
-          - fedora
-          - rocky
       image-version:
         description: "Which image version to build"
         required: true
         type: choice
-        options: 
+        options:
           - ubuntu-24.04-noble
           - ubuntu-22.04-jammy
           - ubuntu-20.04-focal
@@ -43,30 +33,38 @@ on:
         description: "Boot mode"
         required: true
         type: choice
-        options: 
+        options:
           - bios
           - uefi
       image-format:
         description: "Image format"
         required: true
         type: choice
-        options: 
+        options:
           - qcow2
           - raw
       ironic-partition-image:
         description: "Build ironic partition image or not"
         required: false
         type: choice
-        options: 
+        options:
           - no
           - yes
       fedora-v2v-image:
         description: "Build fedora v2v image or not"
         required: false
         type: choice
-        options: 
+        options:
           - no
           - yes
+      nvidia-driver:
+        description: "Build image with nvidia-driver"
+        required: false
+        type: choice
+        options:
+          - no
+          - yes-535
+          - yes-550
       build-param:
         description: "Param of build_images.sh"
         required: false
@@ -98,16 +96,32 @@ jobs:
           ref: 'master'
           token: ${{ secrets.MY_GITHUB_TOKEN }}
 
-      - name: Get image version
+      - name: Get image info
         id: image
         run: |
           IFS='-' read -ra parts <<< ${{ github.event.inputs.image-version }}
-          echo "image_type=$(echo ${parts[0]} | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
+          echo "image_type_lower=$(echo ${parts[0]} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+          echo "image_type_upper=$(echo ${parts[0]} | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
           echo "image_version=${parts[-1]}" >> $GITHUB_OUTPUT
-          echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}" >> $GITHUB_OUTPUT
+          IFS='-' read -ra parts <<< ${{ github.event.inputs.nvidia-driver }}
+          echo "nvidia_driver=${parts[0]}" >> $GITHUB_OUTPUT
+          echo "nvidia_driver_version=${parts[1]}" >> $GITHUB_OUTPUT
+          if [[ ${parts[0]} == "no" ]]; then
+            echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}" >> $GITHUB_OUTPUT
+          else
+            echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_nvidia_${parts[1]}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get build image command
+        id: command
+        run: |
+          echo 'build_image_command="GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ steps.image.outputs.image_type_lower }} ${{ steps.image.outputs.image_type_upper }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} FEDORA_V2V=${{ github.event.inputs.fedora-v2v-image }} NVIDIA_DRIVER=${{ steps.image.outputs.nvidia_driver }} NVIDIA_DRIVER_VERSION=${{ steps.image.outputs.nvidia_driver_version }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"' >> $GITHUB_OUTPUT
+
+      - name: Echo build image command
+        run: "echo ${{ steps.command.outputs.build_image_command }}"
       
       - name: Build image
-        run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ github.event.inputs.image-type }} ${{ steps.image.outputs.image_type }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} FEDORA_V2V=${{ github.event.inputs.fedora-v2v-image }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"
+        run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo ${{ steps.command.outputs.build_image_command }}"
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/mye-scripts"
