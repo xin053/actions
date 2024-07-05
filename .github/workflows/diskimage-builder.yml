@@ -121,7 +121,7 @@ jobs:
         run: "echo ${{ steps.command.outputs.build_image_command }}"
       
       - name: Build image
-        run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo ${{ steps.command.outputs.build_image_command }}"
+        run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo bash -c ${{ steps.command.outputs.build_image_command }}"
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/mye-scripts"
