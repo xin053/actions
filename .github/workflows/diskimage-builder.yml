@@ -138,7 +138,7 @@ jobs:
         run: "ls -alh $GITHUB_WORKSPACE/mye-scripts"
 
       - name: Rename files
-        run: "cd $GITHUB_WORKSPACE/mye-scripts && for file in *.qcow2 *.raw *.vmlinuz *.initrd; do if [ -f $file ]; then if [[ $(stat --printf='%s' $file) -gt 2147483648 ]]; then sudo split --bytes=2G --numeric-suffixes=1 $file ${{ steps.image.outputs.image_description }}_$file.part && sudo rm -f $file; else sudo mv $file ${{ steps.image.outputs.image_description }}_$file;fi;fi;done"
+        run: "cd $GITHUB_WORKSPACE/mye-scripts && for file in *.qcow2 *.raw *.vmlinuz *.initrd; do if [ -f $file ]; then if [[ $(stat --printf='%s' $file) -gt 2097152000 ]]; then sudo split --bytes=2000M --numeric-suffixes=1 $file ${{ steps.image.outputs.image_description }}_$file.part && sudo rm -f $file; else sudo mv $file ${{ steps.image.outputs.image_description }}_$file;fi;fi;done"
 
       - name: Md5sum
         run: |
