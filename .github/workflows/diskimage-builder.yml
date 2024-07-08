@@ -120,6 +120,7 @@ jobs:
               echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_nvidia_${parts[1]}_gpu_stress_test" >> $GITHUB_OUTPUT
             else
               echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_nvidia_${parts[1]}" >> $GITHUB_OUTPUT
+            fi
           fi
 
       - name: Get build image command
