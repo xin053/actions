@@ -18,7 +18,7 @@ jobs:
 
       - name: Build gpu_burn
         run: |
-          cd $GITHUB_WORKSPACE/gpu-burn && sudo touch gpu_burn_${{ matrix.os }}
+          cd $GITHUB_WORKSPACE/gpu-burn && sudo echo 111 > gpu_burn_${{ matrix.os }}
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/gpu-burn"
