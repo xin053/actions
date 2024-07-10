@@ -3,31 +3,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  create_release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get current date
-        id: date
-        run: echo "date=$(date +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
-
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: gpu-burn_${{ steps.date.outputs.date }}
-
   build:
-    needs: create_release
     strategy:
       matrix:
         os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04]
     runs-on: ${{ matrix.os }}
     steps: 
-      - name: Install dependency
-        run: |
-          sudo apt update && sudo apt install -y build-essential nvidia-cuda-toolkit
-
       - name: Checkout gpu-burn
         uses: actions/checkout@v4
         with:
@@ -37,7 +18,7 @@ jobs:
 
       - name: Build gpu_burn
         run: |
-          cd $GITHUB_WORKSPACE/gpu-burn && sudo make && mv gpu_burn gpu_burn_${{ matrix.os }}
+          cd $GITHUB_WORKSPACE/gpu-burn && sudo touch gpu_burn_${{ matrix.os }}
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/gpu-burn"
@@ -45,6 +26,7 @@ jobs:
       - name: Upload to release file
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.create_release.outputs.tag-name }}
+          name: gpu-burn_${{ steps.date.outputs.date }}
+          tag_name: gpu-burn_${{ steps.date.outputs.date }}
           files: |
             ./gpu-burn/gpu_burn_ubuntu*
