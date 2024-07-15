@@ -26,7 +26,7 @@ jobs:
 
       - name: Build gpu_burn
         run: |
-          cd $GITHUB_WORKSPACE/gpu-burn && sudo make && mv gpu_burn gpu_burn_${{ matrix.os }}
+          cd $GITHUB_WORKSPACE/gpu-burn && sudo make && sudo mv gpu_burn gpu_burn_${{ matrix.os }} && sudo mv compare.ptx compare.ptx_${{ matrix.os }}
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/gpu-burn"
@@ -38,3 +38,5 @@ jobs:
           tag_name: gpu-burn_${{ steps.date.outputs.date }}
           files: |
             ./gpu-burn/gpu_burn_ubuntu*
+            ./gpu-burn/compare.ptx_ubuntu*
+
