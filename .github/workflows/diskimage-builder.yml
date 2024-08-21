@@ -58,7 +58,7 @@ on:
           - no
           - yes
       nvidia-driver:
-        description: "Build image with nvidia-driver and GPU stress test tools(DCGM and gpu_burn)"
+        description: "Build image with nvidia-driver and GPU stress test tools(DCGM, gpu_burn and NVSM), NVSM is used for DC GPU"
         required: false
         type: choice
         options:
@@ -67,6 +67,8 @@ on:
           - yes-550
           - yes-535-gpu_stress_test
           - yes-550-gpu_stress_test
+          - yes-535-dc_gpu_stress_test
+          - yes-550-dc_gpu_stress_test
       build-param:
         description: "Param of build_images.sh"
         required: false
@@ -113,11 +115,18 @@ jobs:
           else
             echo "nvidia_gpu_stress_test=no" >> $GITHUB_OUTPUT
           fi
+          if [[ ${parts[2]} == "dc_gpu_stress_test" ]]; then
+            echo "nvidia_dc_gpu_stress_test=yes" >> $GITHUB_OUTPUT
+          else
+            echo "nvidia_dc_gpu_stress_test=no" >> $GITHUB_OUTPUT
+          fi
           if [[ ${parts[0]} == "no" ]]; then
             echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}" >> $GITHUB_OUTPUT
           else
             if [[ ${parts[2]} == "gpu_stress_test" ]]; then
               echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_nvidia_${parts[1]}_gpu_stress_test" >> $GITHUB_OUTPUT
+            elif [[ ${parts[2]} == "dc_gpu_stress_test" ]]; then
+              echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_nvidia_${parts[1]}_dc_gpu_stress_test" >> $GITHUB_OUTPUT
             else
               echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_nvidia_${parts[1]}" >> $GITHUB_OUTPUT
             fi
@@ -126,7 +135,7 @@ jobs:
       - name: Get build image command
         id: command
         run: |
-          echo 'build_image_command="GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ steps.image.outputs.image_type_lower }} ${{ steps.image.outputs.image_type_upper }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} FEDORA_V2V=${{ github.event.inputs.fedora-v2v-image }} NVIDIA_DRIVER=${{ steps.image.outputs.nvidia_driver }} NVIDIA_DRIVER_VERSION=${{ steps.image.outputs.nvidia_driver_version }} NVIDIA_GPU_STRESS_TEST=${{ steps.image.outputs.nvidia_gpu_stress_test }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"' >> $GITHUB_OUTPUT
+          echo 'build_image_command="GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ steps.image.outputs.image_type_lower }} ${{ steps.image.outputs.image_type_upper }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} FEDORA_V2V=${{ github.event.inputs.fedora-v2v-image }} NVIDIA_DRIVER=${{ steps.image.outputs.nvidia_driver }} NVIDIA_DRIVER_VERSION=${{ steps.image.outputs.nvidia_driver_version }} NVIDIA_GPU_STRESS_TEST=${{ steps.image.outputs.nvidia_gpu_stress_test }} NVIDIA_DC_GPU_STRESS_TEST=${{ steps.image.outputs.nvidia_dc_gpu_stress_test }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"' >> $GITHUB_OUTPUT
 
       - name: Echo build image command
         run: "echo ${{ steps.command.outputs.build_image_command }}"
