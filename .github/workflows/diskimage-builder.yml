@@ -50,25 +50,25 @@ on:
         required: false
         type: choice
         options:
-          - no
-          - yes
+          - "no"
+          - "yes"
       fedora-v2v-image:
         description: "Build fedora v2v image or not"
         required: false
         type: choice
         options:
-          - no
-          - yes
+          - "no"
+          - "yes"
       nvidia-driver:
         description: "Build image with nvidia-driver and GPU stress test tools(DCGM and gpu_burn)"
         required: false
         type: choice
         options:
-          - no
-          - yes-535
-          - yes-550
-          - yes-535-gpu_stress_test
-          - yes-550-gpu_stress_test
+          - "no"
+          - "yes-535"
+          - "yes-550"
+          - "yes-535-gpu_stress_test"
+          - "yes-550-gpu_stress_test"
       build-param:
         description: "Param of build_images.sh"
         required: false
