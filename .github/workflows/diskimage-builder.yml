@@ -29,6 +29,8 @@ on:
           - fedora-36
           - rocky-9
           - rocky-8
+          - almalinux-9
+          - almalinux-8
       boot-mode:
         description: "Boot mode"
         required: true
