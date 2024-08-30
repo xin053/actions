@@ -31,6 +31,8 @@ on:
           - rocky-8
           - almalinux-9
           - almalinux-8
+          - openeuler-24.03
+          - openeuler-22.03
       boot-mode:
         description: "Boot mode"
         required: true
