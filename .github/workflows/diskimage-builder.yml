@@ -47,6 +47,13 @@ on:
         options:
           - qcow2
           - raw
+      build-with-docker:
+        description: "Build image using quay.io/zuul-ci/nodepool-builder(only openeuler suggest)"
+        required: false
+        type: choice
+        options:
+          - "no"
+          - "yes"
       ironic-partition-image:
         description: "Build ironic partition image or not"
         required: false
@@ -130,7 +137,7 @@ jobs:
       - name: Get build image command
         id: command
         run: |
-          echo 'build_image_command="GITHUB_ACTION=yes STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ steps.image.outputs.image_type_lower }} ${{ steps.image.outputs.image_type_upper }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} FEDORA_V2V=${{ github.event.inputs.fedora-v2v-image }} NVIDIA_DRIVER=${{ steps.image.outputs.nvidia_driver }} NVIDIA_DRIVER_VERSION=${{ steps.image.outputs.nvidia_driver_version }} NVIDIA_GPU_STRESS_TEST=${{ steps.image.outputs.nvidia_gpu_stress_test }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"' >> $GITHUB_OUTPUT
+          echo 'build_image_command="GITHUB_ACTION=yes BUILD_WITH_DOCKER=${{ github.event.inputs.build-with-docker }} STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ steps.image.outputs.image_type_lower }} ${{ steps.image.outputs.image_type_upper }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} FEDORA_V2V=${{ github.event.inputs.fedora-v2v-image }} NVIDIA_DRIVER=${{ steps.image.outputs.nvidia_driver }} NVIDIA_DRIVER_VERSION=${{ steps.image.outputs.nvidia_driver_version }} NVIDIA_GPU_STRESS_TEST=${{ steps.image.outputs.nvidia_gpu_stress_test }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"' >> $GITHUB_OUTPUT
 
       - name: Echo build image command
         run: "echo ${{ steps.command.outputs.build_image_command }}"
