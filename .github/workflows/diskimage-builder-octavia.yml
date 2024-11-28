@@ -37,7 +37,7 @@ jobs:
           ref: "stable/${{ github.event.inputs.image-version }}"
 
       - name: Build image
-        run: "cd $GITHUB_WORKSPACE/octavia/diskimage-create && sudo bash ./diskimage-create.sh"
+        run: "cd $GITHUB_WORKSPACE/octavia/diskimage-create && sudo bash ./diskimage-create.sh -r Mye2024@Octavia"
 
       - name: List files
         run: "ls -alh $GITHUB_WORKSPACE/octavia/diskimage-create"
