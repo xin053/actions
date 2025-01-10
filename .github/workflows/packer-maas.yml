@@ -18,7 +18,7 @@ on:
         description: "Which boot mode image to build"
         required: false
         type: choice
-        options: 
+        options:
           - uefi
           - bios
       windows-iso:
@@ -29,7 +29,7 @@ on:
         description: "PACKER_LOG for packer"
         required: false
         type: choice
-        options: 
+        options:
           - "0"
           - "1"
       custom-build-command:
@@ -44,7 +44,7 @@ jobs:
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
-        
+
       - name: enable KVM for linux runners
         if: runner.os == 'Linux'
         run: |
@@ -60,7 +60,7 @@ jobs:
           wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update && sudo apt install packer
-    
+
       - name: Checkout packer-maas
         if: github.event.inputs.image-type != 'windows'
         uses: actions/checkout@v4

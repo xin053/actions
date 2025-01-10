@@ -89,18 +89,18 @@ jobs:
     steps:
       - name: Echo build-param
         run: echo ${{ github.event.inputs.build-param }}
-        
+
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
-        
+
       - name: enable KVM for linux runners
         if: runner.os == 'Linux'
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-    
+
       - name: Checkout mye-scripts
         uses: actions/checkout@v4
         with:
@@ -141,7 +141,7 @@ jobs:
 
       - name: Echo build image command
         run: "echo ${{ steps.command.outputs.build_image_command }}"
-      
+
       - name: Build image
         run: "cd $GITHUB_WORKSPACE/mye-scripts && sudo bash -c ${{ steps.command.outputs.build_image_command }}"
 
