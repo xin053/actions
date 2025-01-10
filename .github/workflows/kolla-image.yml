@@ -1,0 +1,41 @@
+name: kolla-image
+on:
+  workflow_dispatch:
+    inputs:
+      dest-registry:
+        description: "Destination registry to push image"
+        required: true
+        default: "img.chinamye.com"
+        type: string
+
+      dest-project:
+        description: "Destination project to push image"
+        required: true
+        default: "kolla"
+        type: string
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kolla-ansible
+        uses: actions/checkout@v4
+        with:
+          repository: xin053/kolla-ansible
+          path: kolla-ansible
+          ref: 'master'
+          token: ${{ secrets.MY_GITHUB_TOKEN }}
+
+      - name: Login to ${{ github.event.inputs.dest-registry }}
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ github.event.inputs.dest-registry }}
+          username: ${{ secrets.DEST_REGISTRY_USERNAME }}
+          password: ${{ secrets.DEST_REGISTRY_PASSWORD }}
+
+      - name: Upload image
+        run: |
+          cd $GITHUB_WORKSPACE/kolla-ansible
+          export registry=${{ github.event.inputs.dest-registry }}
+          export project=${{ github.event.inputs.dest-project }}
+          sudo python3 ./tools/push_docker_images.py
