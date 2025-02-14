@@ -5,7 +5,7 @@ on:
       dest-registry:
         description: "Destination registry to push image"
         required: true
-        default: "img.chinamye.com"
+        default: "harbor-eme.chinamye.com"
         type: string
 
       dest-project:
@@ -61,7 +61,7 @@ jobs:
             sync \
               --src yaml \
               --dest docker \
-              --dest-creds "${{ secrets.DEST_REGISTRY_USERNAME }}:${{ secrets.DEST_REGISTRY_PASSWORD }}" \
+              --dest-creds "${{ secrets.DEST_REGISTRY_USERNAME }}:${{ secrets.DEST_EME_REGISTRY_PASSWORD }}" \
               --scoped \
               --all \
               ${{ matrix.manifest-file }} \
