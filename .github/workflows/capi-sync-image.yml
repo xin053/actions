@@ -20,11 +20,10 @@ jobs:
     outputs:
       manifest-files: ${{ steps.list-manifests.outputs.manifest-files }}
     steps:
-      - name: Checkout kolla-ansible
+      - name: Checkout capi-helm-charts
         uses: actions/checkout@v4
         with:
           repository: xin053/capi-helm-charts
-          ref: 'master'
           token: ${{ secrets.MY_GITHUB_TOKEN }}
 
       - name: List manifests
@@ -46,11 +45,10 @@ jobs:
       matrix:
         manifest-file: ${{ fromJSON(needs.build_manifest_matrix.outputs.manifest-files) }}
     steps:
-      - name: Checkout kolla-ansible
+      - name: Checkout capi-helm-charts
         uses: actions/checkout@v4
         with:
           repository: xin053/capi-helm-charts
-          ref: 'master'
           token: ${{ secrets.MY_GITHUB_TOKEN }}
 
       # Just sync all the images in all the manifests to GitHub packages
