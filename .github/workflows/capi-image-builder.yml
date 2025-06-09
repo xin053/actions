@@ -61,7 +61,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/image-builder/images/capi
           export k8s_major_version="${${{ github.event.inputs.k8s-version }}%.*}"
-          export PACKER_FLAGS="--var 'kubernetes_rpm_version=${{ github.event.inputs.k8s-version }}' --var 'kubernetes_semver=v${{ github.event.inputs.k8s-version }}' --var 'kubernetes_series=v$k8s_major_version' --var 'kubernetes_deb_version=${{ github.event.inputs.k8s-version }}-1.1' --var 'extra_debs=qemu-guest-agent' --var 'extra_rpms=qemu-guest-agent' --var 'disk_size=10240'"
+          export PACKER_FLAGS="--var 'kubernetes_rpm_version=${{ github.event.inputs.k8s-version }}' --var 'kubernetes_semver=v${{ github.event.inputs.k8s-version }}' --var 'kubernetes_series=v${k8s_major_version}' --var 'kubernetes_deb_version=${{ github.event.inputs.k8s-version }}-1.1' --var 'extra_debs=qemu-guest-agent' --var 'extra_rpms=qemu-guest-agent' --var 'disk_size=10240'"
           if [[ ${{ github.event.inputs.system }} == *ubuntu* && ${{ github.event.inputs.system }} == *efi* ]]; then export PACKER_FLAGS="$PACKER_FLAGS --var 'iso_url=https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img' --var 'iso_checksum=https://cloud-images.ubuntu.com/jammy/current/SHA256SUMS' --var 'iso_checksum_type=file'";fi
           echo $PACKER_FLAGS
           make build-qemu-${{ github.event.inputs.system }}
@@ -73,8 +73,11 @@ jobs:
         id: dir
         run: echo "output_dir=$GITHUB_WORKSPACE/image-builder/images/capi/output/$(ls $GITHUB_WORKSPACE/image-builder/images/capi/output)" >> $GITHUB_OUTPUT
 
+      - name: Set image info
+        id: image
+        run: echo "image_description=capi_k8s_${{ github.event.inputs.k8s-version }}_${{ github.event.inputs.system }}" >> $GITHUB_OUTPUT
       - name: Rename files
-        run: "cd ${{ steps.dir.outputs.output_dir }} && for file in *.qcow2 *.raw *.vmlinuz *.initrd; do if [ -f $file ]; then if [[ $(stat --printf='%s' $file) -gt 2097152000 ]]; then sudo split --bytes=2000M --numeric-suffixes=1 $file capi_k8s_${{ github.event.inputs.k8s-version }}_$file.part && sudo rm -f $file; else sudo mv $file capi_k8s_${{ github.event.inputs.k8s-version }}_$file;fi;fi;done"
+        run: "cd ${{ steps.dir.outputs.output_dir }} && for file in *.qcow2 *.raw *.vmlinuz *.initrd; do if [ -f $file ]; then if [[ $(stat --printf='%s' $file) -gt 2097152000 ]]; then sudo split --bytes=2000M --numeric-suffixes=1 $file ${{ steps.image.outputs.image_description }}_$file.part && sudo rm -f $file; else sudo mv $file ${{ steps.image.outputs.image_description }}_$file;fi;fi;done"
 
       - name: Md5sum
         run: |
@@ -88,8 +91,8 @@ jobs:
       - name: Upload to release file
         uses: softprops/action-gh-release@v2
         with:
-          name: capi_k8s_${{ github.event.inputs.k8s-version }}_${{ steps.date.outputs.date }}
-          tag_name: capi_k8s_${{ github.event.inputs.k8s-version }}_${{ steps.date.outputs.date }}
+          name: ${{ steps.image.outputs.image_description }}_${{ steps.date.outputs.date }}
+          tag_name: ${{ steps.image.outputs.image_description }}_${{ steps.date.outputs.date }}
           body_path: ${{ steps.dir.outputs.output_dir }}/md5sum.txt
           files: |
             ${{ steps.dir.outputs.output_dir }}/*.qcow2
