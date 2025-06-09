@@ -65,15 +65,19 @@ jobs:
           make build-qemu-${{ github.event.inputs.system }}
 
       - name: List file
-        run: "cd $GITHUB_WORKSPACE/image-builder/images/capi && tree -L 3"
+        run: "cd $GITHUB_WORKSPACE/image-builder/images/capi/output && tree -L 2"
 
       - name: List dir
         id: dir
         run: echo "output_dir=$GITHUB_WORKSPACE/image-builder/images/capi/output/$(ls $GITHUB_WORKSPACE/image-builder/images/capi/output)" >> $GITHUB_OUTPUT
 
+      - name: Add qcow2 suffix for image file
+        run: find ${{ steps.dir.outputs.output_dir }} -maxdepth 1 -type f -not -name "*.qcow2" -exec mv {} {}.qcow2 \;
+
       - name: Set image info
         id: image
         run: echo "image_description=capi_k8s_${{ github.event.inputs.k8s-version }}_${{ github.event.inputs.system }}" >> $GITHUB_OUTPUT
+
       - name: Rename files
         run: "cd ${{ steps.dir.outputs.output_dir }} && for file in *.qcow2 *.raw *.vmlinuz *.initrd; do if [ -f $file ]; then if [[ $(stat --printf='%s' $file) -gt 2097152000 ]]; then sudo split --bytes=2000M --numeric-suffixes=1 $file ${{ steps.image.outputs.image_description }}_$file.part && sudo rm -f $file; else sudo mv $file ${{ steps.image.outputs.image_description }}_$file;fi;fi;done"
 
