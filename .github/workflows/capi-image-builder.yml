@@ -60,7 +60,7 @@ jobs:
       - name: Make image
         run: |
           cd $GITHUB_WORKSPACE/image-builder/images/capi
-          export k8s_major_version="${${{ github.event.inputs.k8s-version }}%.*}"
+          export k8s_major_version=$(echo ${{ github.event.inputs.k8s-version }} | cut -d'.' -f1,2)
           export PACKER_FLAGS="--var 'kubernetes_rpm_version=${{ github.event.inputs.k8s-version }}' --var 'kubernetes_semver=v${{ github.event.inputs.k8s-version }}' --var 'kubernetes_series=v${k8s_major_version}' --var 'kubernetes_deb_version=${{ github.event.inputs.k8s-version }}-1.1' --var 'extra_debs=qemu-guest-agent' --var 'extra_rpms=qemu-guest-agent' --var 'disk_size=10240'"
           if [[ ${{ github.event.inputs.system }} == *ubuntu* && ${{ github.event.inputs.system }} == *efi* ]]; then export PACKER_FLAGS="$PACKER_FLAGS --var 'iso_url=https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img' --var 'iso_checksum=https://cloud-images.ubuntu.com/jammy/current/SHA256SUMS' --var 'iso_checksum_type=file'";fi
           echo $PACKER_FLAGS
