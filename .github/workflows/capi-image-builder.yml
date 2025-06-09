@@ -1,0 +1,98 @@
+name: capi-image-builder
+on:
+  workflow_dispatch:
+    inputs:
+      k8s-version:
+        description: "K8s version, such as 1.32.5"
+        required: true
+        type: string
+      system:
+        description: "Image system"
+        required: true
+        type: choice
+        options:
+          - ubuntu-2404-efi
+          - ubuntu-2404
+          - ubuntu-2204-efi
+          - ubuntu-2204-cloudimg
+          - ubuntu-2204
+          - ubuntu-2004-efi
+          - ubuntu-2004
+          - centos-9
+          - centos-7
+          - rhel-9
+          - rhel-8
+          - rockylinux-9-cloudimg
+          - rockylinux-9
+          - rockylinux-8-cloudimg
+          - rockylinux-8
+          - flatcar
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
+
+      - name: Enable KVM for runners
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install packages
+        run: "sudo apt update && sudo apt install -y qemu-kvm qemu-utils mkisofs libvirt-daemon-system libvirt-clients virtinst cpu-checker libguestfs-tools libosinfo-bin tree"
+
+      - name: Checkout image-builder
+        uses: actions/checkout@v4
+        with:
+          repository: kubernetes-sigs/image-builder
+          path: image-builder
+
+      - name: Install dependencies
+        run: "cd $GITHUB_WORKSPACE/image-builder/images/capi && make deps-qemu"
+
+      - name: Set PATH
+        run: echo "$GITHUB_WORKSPACE/image-builder/images/capi/.bin" >> $GITHUB_PATH
+
+      - name: Make image
+        run: |
+          cd $GITHUB_WORKSPACE/image-builder/images/capi
+          export k8s_major_version="${${{ github.event.inputs.k8s-version }}%.*}"
+          export PACKER_FLAGS="--var 'kubernetes_rpm_version=${{ github.event.inputs.k8s-version }}' --var 'kubernetes_semver=v${{ github.event.inputs.k8s-version }}' --var 'kubernetes_series=v$k8s_major_version' --var 'kubernetes_deb_version=${{ github.event.inputs.k8s-version }}-1.1' --var 'extra_debs=qemu-guest-agent' --var 'extra_rpms=qemu-guest-agent' --var 'disk_size=10240'"
+          if [[ ${{ github.event.inputs.system }} == *ubuntu* && ${{ github.event.inputs.system }} == *efi* ]]; then export PACKER_FLAGS="$PACKER_FLAGS --var 'iso_url=https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img' --var 'iso_checksum=https://cloud-images.ubuntu.com/jammy/current/SHA256SUMS' --var 'iso_checksum_type=file'";fi
+          echo $PACKER_FLAGS
+          make build-qemu-${{ github.event.inputs.system }}
+
+      - name: List file
+        run: "cd $GITHUB_WORKSPACE/image-builder/images/capi && tree -L 3"
+
+      - name: List dir
+        id: dir
+        run: echo "output_dir=$GITHUB_WORKSPACE/image-builder/images/capi/output/$(ls $GITHUB_WORKSPACE/image-builder/images/capi/output)" >> $GITHUB_OUTPUT
+
+      - name: Rename files
+        run: "cd ${{ steps.dir.outputs.output_dir }} && for file in *.qcow2 *.raw *.vmlinuz *.initrd; do if [ -f $file ]; then if [[ $(stat --printf='%s' $file) -gt 2097152000 ]]; then sudo split --bytes=2000M --numeric-suffixes=1 $file capi_k8s_${{ github.event.inputs.k8s-version }}_$file.part && sudo rm -f $file; else sudo mv $file capi_k8s_${{ github.event.inputs.k8s-version }}_$file;fi;fi;done"
+
+      - name: Md5sum
+        run: |
+          cd ${{ steps.dir.outputs.output_dir }}
+          echo "md5sum:" >> md5sum.txt
+          for file in *.qcow2* *.raw* *.vmlinuz* *.initrd*; do if [ -f $file ]; then md5sum $file >> md5sum.txt;fi;done
+
+      - name: List files again
+        run: "ls -alh ${{ steps.dir.outputs.output_dir }}"
+
+      - name: Upload to release file
+        uses: softprops/action-gh-release@v2
+        with:
+          name: capi_k8s_${{ github.event.inputs.k8s-version }}_${{ steps.date.outputs.date }}
+          tag_name: capi_k8s_${{ github.event.inputs.k8s-version }}_${{ steps.date.outputs.date }}
+          body_path: ${{ steps.dir.outputs.output_dir }}/md5sum.txt
+          files: |
+            ${{ steps.dir.outputs.output_dir }}/*.qcow2
+            ${{ steps.dir.outputs.output_dir }}/*.qcow2.part*
+            ${{ steps.dir.outputs.output_dir }}/*.raw
+            ${{ steps.dir.outputs.output_dir }}/*.raw.part*
