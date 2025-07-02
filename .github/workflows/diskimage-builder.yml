@@ -16,19 +16,25 @@ on:
           - ubuntu-20.04-focal
           - ubuntu-18.04-bionic
           - ubuntu-16.04-xenial
+          - centos-10-stream
+          - centos-9-stream
           - centos-8
           - centos-7
+          - debian-13-trixie
           - debian-12-bookworm
           - debian-11-bullseye
           - debian-10-buster
           - debian-9-stretch
+          - fedora-43
+          - fedora-42
+          - fedora-41
           - fedora-40
           - fedora-39
           - fedora-38
-          - fedora-37
-          - fedora-36
+          - rocky-10
           - rocky-9
           - rocky-8
+          - almalinux-10
           - almalinux-9
           - almalinux-8
           - openeuler-24.03
