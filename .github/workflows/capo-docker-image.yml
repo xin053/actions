@@ -1,0 +1,36 @@
+name: capo-docker-image
+on:
+  workflow_dispatch:
+    inputs:
+      capo-version:
+        description: "Capo version, such as v0.12.5"
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout capo repository
+        uses: actions/checkout@v4
+        with:
+          repository: kubernetes-sigs/cluster-api-provider-openstack
+          path: cluster-api-provider-openstack
+          ref: ${{ github.event.inputs.capo-version }}
+
+      - name: Change Delete to ForceDelete in OpenStack CAPO code
+        run: |
+          sed -i s#servers.Delete#servers.ForceDelete#g $GITHUB_WORKSPACE/cluster-api-provider-openstack/pkg/clients/compute.go
+
+      - name: Login to Harboreme Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.HARBOREME_REGISTRY }}
+          username: ${{ secrets.HARBOREME_REGISTRY_USERNAME }}
+          password: ${{ secrets.HARBOREME_REGISTRY_PASSWORD }}
+
+      - name: Build Capo Docker Image
+        run: |
+          cd $GITHUB_WORKSPACE/cluster-api-provider-openstack && make docker-build docker-push
+        env:
+          CONTROLLER_IMG_TAG: ${{ secrets.HARBOREME_REGISTRY }}/kubespray/registry.k8s.io/capi-openstack/capi-openstack-controller:${{ github.event.inputs.capo-version }}-mye
