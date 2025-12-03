@@ -44,7 +44,7 @@ jobs:
       - name: Build linux target
         run: |
             cd $GITHUB_WORKSPACE
-            sed -i s#go-ceph.*#go-ceph ${{ github.event.inputs.go-ceph-version }}#g $GITHUB_WORKSPACE/go.mod
+            sed -i 's#go-ceph.*#go-ceph ${{ github.event.inputs.go-ceph-version }}#g' $GITHUB_WORKSPACE/go.mod
             go mod tidy
             make juicefs.ceph
             ls -alh .
