@@ -20,6 +20,7 @@ on:
 
 jobs:
   build:
+    # TODO: ceph 支持 ubuntu24.04 后改为 ubuntu-latest
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout juicefs repository
@@ -42,8 +43,8 @@ jobs:
 
       - name: Build linux target
         run: |
-            cd $GITHUB_WORKSPACE/juicefs
-            sed -i s#go-ceph.*#go-ceph ${{ github.event.inputs.go-ceph-version }}#g $GITHUB_WORKSPACE/juicefs/go.mod
+            cd $GITHUB_WORKSPACE
+            sed -i s#go-ceph.*#go-ceph ${{ github.event.inputs.go-ceph-version }}#g $GITHUB_WORKSPACE/go.mod
             go mod tidy
             make juicefs.ceph
             ls -alh .
@@ -55,4 +56,4 @@ jobs:
           tag_name: juicefs-${{ github.event.inputs.juicefs-version }}_ceph-${{ github.event.inputs.ceph-version }}
           body: juicefs-${{ github.event.inputs.juicefs-version }}_ceph-${{ github.event.inputs.ceph-version }}_go-ceph-${{ github.event.inputs.go-ceph-version }}
           files: |
-            $GITHUB_WORKSPACE/juicefs/juicefs.ceph
+            $GITHUB_WORKSPACE/juicefs.ceph
