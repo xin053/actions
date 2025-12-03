@@ -29,18 +29,10 @@ jobs:
           ref: ${{ github.event.inputs.juicefs-version }}
 
       - uses: actions/setup-go@v6
-
-      - name: Change go version for root user
-        shell: bash
-        run: |
-            go_path=`which go`
-            echo $go_path
-            root_go_path=`sudo which go`
-            echo $root_go_path
-            sudo rm -f $root_go_path
-            sudo ln -s $go_path $root_go_path
-            go version
-            sudo go version
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+          cache-dependency-path: 'go.sum'
 
       - name: Install packages
         run: |
