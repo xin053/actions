@@ -22,10 +22,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v3
+      - name: Checkout juicefs repository
+        uses: actions/checkout@v6
         with:
-            go-version: 'oldstable'
-            cache: true
+          repository: juicedata/juicefs
+          ref: ${{ github.event.inputs.juicefs-version }}
+
+      - uses: actions/setup-go@v6
 
       - name: Change go version for root user
         shell: bash
@@ -44,13 +47,6 @@ jobs:
             wget -q -O- 'https://download.ceph.com/keys/release.asc' | sudo tee /etc/apt/trusted.gpg.d/ceph.asc
             echo deb https://download.ceph.com/debian-${{ github.event.inputs.ceph-version }}/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list
             sudo apt update && sudo apt install -y librados-dev
-
-      - name: Checkout juicefs repository
-        uses: actions/checkout@v6
-        with:
-          repository: juicedata/juicefs
-          path: juicefs
-          ref: ${{ github.event.inputs.juicefs-version }}
 
       - name: Build linux target
         run: |
