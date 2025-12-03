@@ -31,7 +31,7 @@ jobs:
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24'
+          go-version: 'stable'
           cache: true
           cache-dependency-path: 'go.sum'
 
@@ -56,4 +56,4 @@ jobs:
           tag_name: juicefs-${{ github.event.inputs.juicefs-version }}_ceph-${{ github.event.inputs.ceph-version }}
           body: juicefs-${{ github.event.inputs.juicefs-version }}_ceph-${{ github.event.inputs.ceph-version }}_go-ceph-${{ github.event.inputs.go-ceph-version }}
           files: |
-            $GITHUB_WORKSPACE/juicefs.ceph
+            ./juicefs.ceph
