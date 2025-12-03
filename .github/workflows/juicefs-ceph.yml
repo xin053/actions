@@ -1,0 +1,70 @@
+name: juicefs-ceph
+on:
+  workflow_dispatch:
+    inputs:
+      juicefs-version:
+        description: "juicefs version, such as v1.3.1"
+        required: true
+        type: string
+      ceph-version:
+        description: "ceph version"
+        required: true
+        type: choice
+        options:
+          - tentacle
+          - squid
+      go-ceph-version:
+        description: "ceph/go-ceph version, such as v0.36.0"
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+            go-version: 'oldstable'
+            cache: true
+
+      - name: Change go version for root user
+        shell: bash
+        run: |
+            go_path=`which go`
+            echo $go_path
+            root_go_path=`sudo which go`
+            echo $root_go_path
+            sudo rm -f $root_go_path
+            sudo ln -s $go_path $root_go_path
+            go version
+            sudo go version
+
+      - name: Install packages
+        run: |
+            wget -q -O- 'https://download.ceph.com/keys/release.asc' | sudo tee /etc/apt/trusted.gpg.d/ceph.asc
+            echo deb https://download.ceph.com/debian-${{ github.event.inputs.ceph-version }}/ $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list
+            sudo apt update && sudo apt install -y librados-dev
+
+      - name: Checkout juicefs repository
+        uses: actions/checkout@v6
+        with:
+          repository: juicedata/juicefs
+          path: juicefs
+          ref: ${{ github.event.inputs.juicefs-version }}
+
+      - name: Build linux target
+        run: |
+            cd $GITHUB_WORKSPACE/juicefs
+            sed -i s#go-ceph.*#go-ceph ${{ github.event.inputs.go-ceph-version }}#g $GITHUB_WORKSPACE/juicefs/go.mod
+            go mod tidy
+            make juicefs.ceph
+            ls -alh .
+
+      - name: Upload to release file
+        uses: softprops/action-gh-release@v2
+        with:
+          name: juicefs-${{ github.event.inputs.juicefs-version }}_ceph-${{ github.event.inputs.ceph-version }}
+          tag_name: juicefs-${{ github.event.inputs.juicefs-version }}_ceph-${{ github.event.inputs.ceph-version }}
+          body: juicefs-${{ github.event.inputs.juicefs-version }}_ceph-${{ github.event.inputs.ceph-version }}_go-ceph-${{ github.event.inputs.go-ceph-version }}
+          files: |
+            $GITHUB_WORKSPACE/juicefs/juicefs.ceph
