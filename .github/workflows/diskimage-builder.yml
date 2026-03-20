@@ -11,6 +11,7 @@ on:
         required: true
         type: choice
         options:
+          - ubuntu-26.04-resolute
           - ubuntu-24.04-noble
           - ubuntu-22.04-jammy
           - ubuntu-20.04-focal
@@ -44,8 +45,8 @@ on:
         required: true
         type: choice
         options:
-          - bios
           - uefi
+          - bios
       image-format:
         description: "Image format"
         required: true
@@ -75,15 +76,39 @@ on:
           - "no"
           - "yes"
       nvidia-driver:
-        description: "Build image with nvidia-driver and GPU stress test tools(DCGM and gpu_burn)"
+        description: "Build image with nvidia-driver, nvlink, doca driver and GPU stress test tools(DCGM and gpu_burn)"
         required: false
         type: choice
         options:
           - "no"
           - "yes-535"
-          - "yes-550"
+          - "yes-535-nvlink-5_535"
           - "yes-535-gpu_stress_test"
-          - "yes-550-gpu_stress_test"
+          - "yes-570"
+          - "yes-570-nvlink-5_570"
+          - "yes-570-gpu_stress_test"
+          - "yes-580"
+          - "yes-580-nvlink-5_580"
+          - "yes-580-gpu_stress_test"
+      cuda:
+        description: "Build image with cuda"
+        required: false
+        type: choice
+        options:
+          - "no"
+          - "yes-13_2"
+          - "yes-13_1"
+          - "yes-13_0"
+          - "yes-12_9"
+          - "yes-12_8"
+          - "yes-12_6"
+          - "yes-12_5"
+          - "yes-12_4"
+          - "yes-12_3"
+          - "yes-12_2"
+          - "yes-12_1"
+          - "yes-12_0"
+          - "yes-11_8"
       build-param:
         description: "Param of build_images.sh"
         required: false
@@ -93,6 +118,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Aggressive free disk space
+        run: |
+          echo "################################"
+          echo "Disk usage BEFORE cleanup:"
+          echo "################################"
+          df -h
+          echo "Removing hosted toolcache..."
+          sudo rm -rf /opt/hostedtoolcache || true
+          echo "Removing .NET..."
+          sudo rm -rf /usr/share/dotnet || true
+          echo "Removing Android SDK..."
+          sudo rm -rf /usr/local/lib/android || true
+          echo "Removing GHC / Haskell..."
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf /usr/local/.ghcup || true
+          echo "Docker prune (just in case runner had leftovers)..."
+          sudo docker container prune -f || true
+          sudo docker image prune -af || true
+          sudo docker volume prune -f || true
+          echo "################################"
+          echo "Disk usage AFTER cleanup:"
+          echo "################################"
+          df -h
+
       - name: Echo build-param
         run: echo ${{ github.event.inputs.build-param }}
 
@@ -122,28 +171,48 @@ jobs:
           echo "image_type_lower=$(echo ${parts[0]} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
           echo "image_type_upper=$(echo ${parts[0]} | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
           echo "image_version=${parts[-1]}" >> $GITHUB_OUTPUT
-          IFS='-' read -ra parts <<< ${{ github.event.inputs.nvidia-driver }}
-          echo "nvidia_driver=${parts[0]}" >> $GITHUB_OUTPUT
-          echo "nvidia_driver_version=${parts[1]}" >> $GITHUB_OUTPUT
-          if [[ ${parts[2]} == "gpu_stress_test" ]]; then
+
+          IFS='-' read -ra parts1 <<< ${{ github.event.inputs.nvidia-driver }}
+          echo "nvidia_driver=${parts1[0]}" >> $GITHUB_OUTPUT
+          echo "nvidia_driver_version=${parts1[1]}" >> $GITHUB_OUTPUT
+          if [[ ${parts1[2]} == "nvlink" ]]; then
+            echo "nvlink_install=yes" >> $GITHUB_OUTPUT
+            echo "nvlink_version=${parts1[3]}" >> $GITHUB_OUTPUT
+          else
+            echo "nvlink_install=no" >> $GITHUB_OUTPUT
+            echo "nvlink_version=${parts1[3]}" >> $GITHUB_OUTPUT
+          fi
+          if [[ ${parts1[2]} == "gpu_stress_test" ]]; then
             echo "nvidia_gpu_stress_test=yes" >> $GITHUB_OUTPUT
           else
             echo "nvidia_gpu_stress_test=no" >> $GITHUB_OUTPUT
           fi
-          if [[ ${parts[0]} == "no" ]]; then
+
+          IFS='-' read -ra parts2 <<< ${{ github.event.inputs.cuda }}
+          echo "cuda_install=${parts2[0]}" >> $GITHUB_OUTPUT
+          echo "cuda_version=${parts2[1]}" >> $GITHUB_OUTPUT
+
+          if [[ ${parts1[0]} == "no" ]]; then
             echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}" >> $GITHUB_OUTPUT
           else
-            if [[ ${parts[2]} == "gpu_stress_test" ]]; then
-              echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_nvidia_${parts[1]}_gpu_stress_test" >> $GITHUB_OUTPUT
-            else
-              echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_nvidia_${parts[1]}" >> $GITHUB_OUTPUT
+            description="nvidia_${parts1[1]}"
+            if [[ ${parts2[0]} == "yes" ]]; then
+              description="${description}_cuda_${parts2[1]}"
             fi
+            if [[ ${parts1[2]} == "gpu_stress_test" ]]; then
+              description="${description}_gpu_stress_test"
+            elif [[ ${parts1[2]} == "nvlink" ]]; then
+              description="${description}_nvlink_${parts1[3]}"
+            else
+              description="${description}"
+            fi
+            echo "image_description=${{ github.event.inputs.image-description }}_${{ github.event.inputs.boot-mode }}_${description}" >> $GITHUB_OUTPUT
           fi
 
       - name: Get build image command
         id: command
         run: |
-          echo 'build_image_command="GITHUB_ACTION=yes BUILD_WITH_DOCKER=${{ github.event.inputs.build-with-docker }} STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ steps.image.outputs.image_type_lower }} ${{ steps.image.outputs.image_type_upper }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} FEDORA_V2V=${{ github.event.inputs.fedora-v2v-image }} NVIDIA_DRIVER=${{ steps.image.outputs.nvidia_driver }} NVIDIA_DRIVER_VERSION=${{ steps.image.outputs.nvidia_driver_version }} NVIDIA_GPU_STRESS_TEST=${{ steps.image.outputs.nvidia_gpu_stress_test }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"' >> $GITHUB_OUTPUT
+          echo 'build_image_command="GITHUB_ACTION=yes BUILD_WITH_DOCKER=${{ github.event.inputs.build-with-docker }} STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ steps.image.outputs.image_type_lower }} ${{ steps.image.outputs.image_type_upper }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} FEDORA_V2V=${{ github.event.inputs.fedora-v2v-image }} NVIDIA_DRIVER=${{ steps.image.outputs.nvidia_driver }} NVIDIA_DRIVER_VERSION=${{ steps.image.outputs.nvidia_driver_version }} CUDA_INSTALL=${{ steps.image.outputs.cuda_install }} CUDA_VERSION=${{ steps.image.outputs.cuda_version }} NVLINK_INSTALL=${{ steps.image.outputs.nvlink_install }} NVLINK_VERSION=${{ steps.image.outputs.nvlink_version }} DOCA_INSTALL=${{ steps.image.outputs.nvlink_install }} NVIDIA_GPU_STRESS_TEST=${{ steps.image.outputs.nvidia_gpu_stress_test }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"' >> $GITHUB_OUTPUT
 
       - name: Echo build image command
         run: "echo ${{ steps.command.outputs.build_image_command }}"
