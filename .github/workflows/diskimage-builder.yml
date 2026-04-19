@@ -84,12 +84,12 @@ on:
           - "yes-535"
           - "yes-535-nvlink-5_535"
           - "yes-535-gpu_stress_test"
-          - "yes-570"
-          - "yes-570-nvlink-5_570"
-          - "yes-570-gpu_stress_test"
           - "yes-580"
-          - "yes-580-nvlink-5_580"
+          - "yes-580-nvlink-5"
           - "yes-580-gpu_stress_test"
+          - "yes-595"
+          - "yes-595-nvlink-5"
+          - "yes-595-gpu_stress_test"
       cuda:
         description: "Build image with cuda"
         required: false
