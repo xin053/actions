@@ -19,7 +19,7 @@ on:
           - ubuntu-16.04-xenial
           - centos-10_stream
           - centos-9_stream
-          - centos-8_stream
+          - centos-8
           - centos-7
           - debian-13-trixie
           - debian-12-bookworm
