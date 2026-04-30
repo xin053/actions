@@ -17,9 +17,9 @@ on:
           - ubuntu-20.04-focal
           - ubuntu-18.04-bionic
           - ubuntu-16.04-xenial
-          - centos-10-stream
-          - centos-9-stream
-          - centos-8
+          - centos-10_stream
+          - centos-9_stream
+          - centos-8_stream
           - centos-7
           - debian-13-trixie
           - debian-12-bookworm
@@ -170,7 +170,7 @@ jobs:
           IFS='-' read -ra parts <<< ${{ github.event.inputs.image-version }}
           echo "image_type_lower=$(echo ${parts[0]} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
           echo "image_type_upper=$(echo ${parts[0]} | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
-          echo "image_version=${parts[-1]}" >> $GITHUB_OUTPUT
+          echo "image_version=$(echo ${parts[-1]} | tr '_' '-')" >> $GITHUB_OUTPUT
 
           IFS='-' read -ra parts1 <<< ${{ github.event.inputs.nvidia-driver }}
           echo "nvidia_driver=${parts1[0]}" >> $GITHUB_OUTPUT
