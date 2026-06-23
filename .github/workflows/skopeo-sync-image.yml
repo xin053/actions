@@ -30,7 +30,7 @@ jobs:
       - name: Sync images
         run: |-
           podman run \
-            -v $GITHUB_WORKSPACE/actions/skopeo-manifests:/opt/skopeo-manifests \
+            -v ./skopeo-manifests:/opt/skopeo-manifests \
             quay.io/skopeo/stable:latest \
             sync \
               --src yaml \
