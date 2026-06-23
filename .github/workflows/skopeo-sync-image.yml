@@ -1,0 +1,42 @@
+name: skopeo-sync-image
+on:
+  workflow_dispatch:
+    inputs:
+      dest-registry:
+        description: "Destination registry to push image"
+        required: true
+        default: "harbor-eme.chinamye.com"
+        type: string
+
+      dest-project:
+        description: "Destination project to push image"
+        required: true
+        default: "kubespray"
+        type: string
+
+      images-list:
+        description: "List of images to sync"
+        required: true
+        default: "kubespray.yml"
+        type: string
+
+jobs:
+  sync-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Sync images
+        run: |-
+          podman run \
+            -v $GITHUB_WORKSPACE/actions/skopeo-manifests:/opt/skopeo-manifests \
+            quay.io/skopeo/stable:latest \
+            sync \
+              --src yaml \
+              --dest docker \
+              --dest-creds "${{ secrets.DEST_REGISTRY_USERNAME }}:${{ secrets.DEST_EME_REGISTRY_PASSWORD }}" \
+              --scoped \
+              --all \
+              /opt/skopeo-manifests/${{ github.event.inputs.images-list }} \
+              ${{ github.event.inputs.dest-registry }}/${{ github.event.inputs.dest-project }}

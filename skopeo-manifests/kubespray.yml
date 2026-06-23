@@ -1,0 +1,78 @@
+docker.io:
+  images:
+    flannel/flannel-cni-plugin:
+    - v1.7.1-flannel1
+    flannel/flannel:
+    - v0.28.4
+    library/busybox:
+    - latest
+    library/haproxy:
+    - 3.2.13-alpine
+    library/nginx:
+    - 1.28.2-alpine
+    library/registry:
+    - 2.8.1
+    rancher/local-path-provisioner:
+    - v0.0.32
+ghcr.io:
+  images:
+    kube-vip/kube-vip:
+    - v1.0.3
+quay.io:
+  images:
+    calico/apiserver:
+    - v3.31.5
+    calico/cni:
+    - v3.31.5
+    calico/kube-controllers:
+    - v3.31.5
+    calico/node:
+    - v3.31.5
+    calico/typha:
+    - v3.31.5
+    coreos/etcd:
+    - v3.6.10
+    jetstack/cert-manager-acmesolver:
+    - v1.15.3
+    jetstack/cert-manager-cainjector:
+    - v1.15.3
+    jetstack/cert-manager-controller:
+    - v1.15.3
+    jetstack/cert-manager-webhook:
+    - v1.15.3
+registry.k8s.io:
+  images:
+    coredns/coredns:
+    - v1.12.4
+    cpa/cluster-proportional-autoscaler:
+    - v1.8.8
+    dns/k8s-dns-node-cache:
+    - 1.25.0
+    kube-apiserver:
+    - v1.35.4
+    kube-controller-manager:
+    - v1.35.4
+    kube-proxy:
+    - v1.35.4
+    kube-scheduler:
+    - v1.35.4
+    metrics-server/metrics-server:
+    - v0.8.1
+    pause:
+    - 3.10.1
+    provider-os/cinder-csi-plugin:
+    - v1.30.0
+    sig-storage/csi-attacher:
+    - v4.4.2
+    sig-storage/csi-node-driver-registrar:
+    - v2.4.0
+    sig-storage/csi-provisioner:
+    - v3.6.2
+    sig-storage/csi-resizer:
+    - v1.9.2
+    sig-storage/csi-snapshotter:
+    - v6.3.2
+    sig-storage/livenessprobe:
+    - v2.11.0
+    sig-storage/snapshot-controller:
+    - v7.0.2
