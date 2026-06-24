@@ -63,6 +63,5 @@ jobs:
               --dest docker \
               --dest-creds "${{ secrets.DEST_REGISTRY_USERNAME }}:${{ secrets.DEST_EME_REGISTRY_PASSWORD }}" \
               --scoped \
-              --all \
               ${{ matrix.manifest-file }} \
               ${{ github.event.inputs.dest-registry }}/${{ github.event.inputs.dest-project }}
