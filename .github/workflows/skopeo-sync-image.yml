@@ -37,6 +37,5 @@ jobs:
               --dest docker \
               --dest-creds "${{ secrets.DEST_REGISTRY_USERNAME }}:${{ secrets.DEST_EME_REGISTRY_PASSWORD }}" \
               --scoped \
-              --all \
               /opt/skopeo-manifests/${{ github.event.inputs.images-list }} \
               ${{ github.event.inputs.dest-registry }}/${{ github.event.inputs.dest-project }}
