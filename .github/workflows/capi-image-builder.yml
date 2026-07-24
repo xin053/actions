@@ -11,21 +11,20 @@ on:
         required: true
         type: choice
         options:
+          - ubuntu-2604-efi
+          - ubuntu-2604
           - ubuntu-2404-efi
+          - ubuntu-2404-immutable
+          - ubuntu-2404-cloudimg
           - ubuntu-2404
           - ubuntu-2204-efi
           - ubuntu-2204-cloudimg
           - ubuntu-2204
-          - ubuntu-2004-efi
-          - ubuntu-2004
+          - centos-10
           - centos-9
-          - centos-7
           - rhel-9
-          - rhel-8
           - rockylinux-9-cloudimg
           - rockylinux-9
-          - rockylinux-8-cloudimg
-          - rockylinux-8
           - flatcar
 
 jobs:
