@@ -71,7 +71,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/image-builder/images/capi
           export k8s_major_version=$(echo ${{ github.event.inputs.k8s-version }} | cut -d'.' -f1,2)
-          export PACKER_FLAGS="--var 'kubernetes_rpm_version=${{ github.event.inputs.k8s-version }}' --var 'kubernetes_semver=v${{ github.event.inputs.k8s-version }}' --var 'kubernetes_series=v${k8s_major_version}' --var 'kubernetes_deb_version=${{ github.event.inputs.k8s-version }}-1.1' --var 'extra_debs=qemu-guest-agent' --var 'extra_rpms=qemu-guest-agent' --var 'disk_size=10240' --var 'node_custom_roles_post=mye'"
+          export PACKER_FLAGS="--var 'kubernetes_load_additional_imgs=true' --var 'kubernetes_rpm_version=${{ github.event.inputs.k8s-version }}' --var 'kubernetes_semver=v${{ github.event.inputs.k8s-version }}' --var 'kubernetes_series=v${k8s_major_version}' --var 'kubernetes_deb_version=${{ github.event.inputs.k8s-version }}-1.1' --var 'extra_debs=qemu-guest-agent' --var 'extra_rpms=qemu-guest-agent' --var 'disk_size=10240' --var 'node_custom_roles_post=mye'"
           make build-qemu-${{ github.event.inputs.system }}
 
       - name: List file
