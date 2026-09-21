@@ -213,6 +213,8 @@ jobs:
               description="${description}_gpu_stress_test"
             elif [[ ${parts1[2]} == "nvlink" ]]; then
               description="${description}_nvlink_${parts1[3]}"
+            elif [[ ${parts1[2]} == "doca" ]]; then
+              description="${description}_doca"
             else
               description="${description}"
             fi
