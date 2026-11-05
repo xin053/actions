@@ -88,10 +88,10 @@ on:
           - "yes-595-nvlink-5"
           - "yes-595-doca"
           - "yes-595-gpu_stress_test"
-          - "yes-615"
-          - "yes-615-nvlink-5"
-          - "yes-615-doca"
-          - "yes-615-gpu_stress_test"
+          - "yes-620"
+          - "yes-620-nvlink-5"
+          - "yes-620-doca"
+          - "yes-620-gpu_stress_test"
       cuda:
         description: "Build image with cuda"
         required: false
