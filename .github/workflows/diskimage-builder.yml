@@ -2,6 +2,16 @@ name: diskimage-builder
 on:
   workflow_dispatch:
     inputs:
+      runner-os:
+        description: 'Github action (Runner OS)'
+        required: true
+        default: 'ubuntu-latest'
+        type: choice
+        options:
+          - ubuntu-latest
+          - ubuntu-26.04
+          - ubuntu-24.04
+          - ubuntu-22.04
       image-description:
         description: "Image description (used to generate release description)"
         required: true
@@ -60,20 +70,6 @@ on:
         options:
           - "no"
           - "yes"
-      ironic-partition-image:
-        description: "Build ironic partition image or not"
-        required: false
-        type: choice
-        options:
-          - "no"
-          - "yes"
-      fedora-v2v-image:
-        description: "Build fedora v2v image or not"
-        required: false
-        type: choice
-        options:
-          - "no"
-          - "yes"
       nvidia-driver:
         description: "Build image with nvidia-driver, nvlink, doca driver and GPU stress test tools(DCGM and gpu_burn)"
         required: false
@@ -120,7 +116,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner-os || 'ubuntu-latest' }}
     steps:
       - name: Aggressive free disk space
         run: |
@@ -224,7 +220,7 @@ jobs:
       - name: Get build image command
         id: command
         run: |
-          echo 'build_image_command="GITHUB_ACTION=yes BUILD_WITH_DOCKER=${{ github.event.inputs.build-with-docker }} STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ steps.image.outputs.image_type_lower }} ${{ steps.image.outputs.image_type_upper }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} IRONIC_PARTITION_IMAGE=${{ github.event.inputs.ironic-partition-image }} FEDORA_V2V=${{ github.event.inputs.fedora-v2v-image }} NVIDIA_DRIVER=${{ steps.image.outputs.nvidia_driver }} NVIDIA_DRIVER_VERSION=${{ steps.image.outputs.nvidia_driver_version }} CUDA_INSTALL=${{ steps.image.outputs.cuda_install }} CUDA_VERSION=${{ steps.image.outputs.cuda_version }} NVLINK_INSTALL=${{ steps.image.outputs.nvlink_install }} NVLINK_VERSION=${{ steps.image.outputs.nvlink_version }} DOCA_INSTALL=${{ steps.image.outputs.doca_install }} NVIDIA_GPU_STRESS_TEST=${{ steps.image.outputs.nvidia_gpu_stress_test }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"' >> $GITHUB_OUTPUT
+          echo 'build_image_command="GITHUB_ACTION=yes BUILD_WITH_DOCKER=${{ github.event.inputs.build-with-docker }} STORE_PATH=$GITHUB_WORKSPACE/mye-scripts IMAGE=${{ steps.image.outputs.image_type_lower }} ${{ steps.image.outputs.image_type_upper }}_RELEASE=${{ steps.image.outputs.image_version }} BOOT_MODE=${{ github.event.inputs.boot-mode }} NVIDIA_DRIVER=${{ steps.image.outputs.nvidia_driver }} NVIDIA_DRIVER_VERSION=${{ steps.image.outputs.nvidia_driver_version }} CUDA_INSTALL=${{ steps.image.outputs.cuda_install }} CUDA_VERSION=${{ steps.image.outputs.cuda_version }} NVLINK_INSTALL=${{ steps.image.outputs.nvlink_install }} NVLINK_VERSION=${{ steps.image.outputs.nvlink_version }} DOCA_INSTALL=${{ steps.image.outputs.doca_install }} NVIDIA_GPU_STRESS_TEST=${{ steps.image.outputs.nvidia_gpu_stress_test }} IMAGE_FORMAT=${{ github.event.inputs.image-format }} ${{ github.event.inputs.build-param }} bash ./build_image.sh"' >> $GITHUB_OUTPUT
 
       - name: Echo build image command
         run: "echo ${{ steps.command.outputs.build_image_command }}"
