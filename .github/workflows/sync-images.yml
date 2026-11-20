@@ -1,0 +1,151 @@
+name: Docker Image Sync Service
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_file:
+        description: '1. 镜像清单文档（默认 images.txt，留空则不读取文件）'
+        required: false
+        default: 'images.txt'
+        type: string
+      images:
+        description: '2. 镜像名称列表（多个用逗号或分号分隔，留空则只读取清单文档）'
+        required: false
+        default: ''
+        type: string
+      target_registry:
+        description: '3. 目标地址（支持别名 tencent/huawei，或填 ccr.ccs.tencentyun.com / swr.cn-east-3.myhuaweicloud.com / 自定义）'
+        required: true
+        default: 'swr.cn-east-3.myhuaweicloud.com'
+        type: string
+      target_namespace:
+        description: '4. 目标仓库/命名空间（常用: openstack.kolla / mye-kolla / 或填其他自定义仓库）'
+        required: true
+        default: 'openstack.kolla'
+        type: string
+      naming_style:
+        description: '5. 目标镜像风格（a: registry/ns/image:tag | b: registry/ns/src_registry/src_path:tag）'
+        required: true
+        default: 'a'
+        type: choice
+        options:
+          - 'a'
+          - 'b'
+      arch:
+        description: '6. 镜像同步架构（默认 amd64，支持 arm64 / linux/arm64 / all）'
+        required: true
+        default: 'amd64'
+        type: string
+      concurrency:
+        description: '7. 镜像同步并发数（1~16，默认 5）'
+        required: true
+        default: '5'
+        type: string
+      image_filter:
+        description: '8. 镜像过滤关键字（如 nova，多关键字用逗号或分号分隔，留空同步全部）'
+        required: false
+        default: ''
+        type: string
+      sync_mode:
+        description: '9. 同步模式（incremental: Digest一致跳过 | force: 强制覆盖 | dry-run: 仅预演）'
+        required: true
+        default: 'incremental'
+        type: choice
+        options:
+          - 'incremental'
+          - 'force'
+          - 'dry-run'
+      tls_verify:
+        description: '10. 是否校验证书（自建无证书仓库可取消勾选）'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+# 同一目标仓库排队执行，避免并发写入冲突；不同目标仓库可同时执行
+concurrency:
+  group: image-sync-${{ inputs.target_registry }}-${{ inputs.target_namespace }}
+  cancel-in-progress: false
+
+jobs:
+  sync-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Skopeo
+        if: ${{ inputs.sync_mode != 'dry-run' }}
+        run: |
+          for i in 1 2 3; do
+            sudo apt-get update -qq && sudo apt-get install -y -qq skopeo && break
+            echo "apt install skopeo failed, retrying ($i/3)..."
+            sleep 5
+          done
+          skopeo --version
+
+      - name: Run Image Sync Script
+        env:
+          # 所有手动输入通过环境变量传入，避免 Shell 转义/注入风险
+          INPUT_IMAGE_FILE: ${{ inputs.image_file }}
+          INPUT_IMAGES: ${{ inputs.images }}
+          INPUT_TARGET_REGISTRY: ${{ inputs.target_registry }}
+          INPUT_TARGET_NAMESPACE: ${{ inputs.target_namespace }}
+          INPUT_NAMING_STYLE: ${{ inputs.naming_style }}
+          INPUT_ARCH: ${{ inputs.arch }}
+          INPUT_CONCURRENCY: ${{ inputs.concurrency }}
+          INPUT_IMAGE_FILTER: ${{ inputs.image_filter }}
+          INPUT_SYNC_MODE: ${{ inputs.sync_mode }}
+          INPUT_TLS_VERIFY: ${{ inputs.tls_verify }}
+          # 目标仓库凭证（Secrets）
+          TENCENT_REGISTRY_USER: ${{ secrets.TENCENT_REGISTRY_USER }}
+          TENCENT_REGISTRY_PASSWORD: ${{ secrets.TENCENT_REGISTRY_PASSWORD }}
+          HUAWEI_REGISTRY_USER: ${{ secrets.HUAWEI_REGISTRY_USER }}
+          HUAWEI_REGISTRY_PASSWORD: ${{ secrets.HUAWEI_REGISTRY_PASSWORD }}
+          CUSTOM_REGISTRY_USER: ${{ secrets.CUSTOM_REGISTRY_USER }}
+          CUSTOM_REGISTRY_PASSWORD: ${{ secrets.CUSTOM_REGISTRY_PASSWORD }}
+          TARGET_REGISTRY_USER: ${{ secrets.TARGET_REGISTRY_USER }}
+          TARGET_REGISTRY_PASSWORD: ${{ secrets.TARGET_REGISTRY_PASSWORD }}
+          # 可选源仓库凭证（Secrets）
+          DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          SOURCE_REGISTRY_HOST: ${{ secrets.SOURCE_REGISTRY_HOST }}
+          SOURCE_REGISTRY_USER: ${{ secrets.SOURCE_REGISTRY_USER }}
+          SOURCE_REGISTRY_PASSWORD: ${{ secrets.SOURCE_REGISTRY_PASSWORD }}
+        run: |
+          python3 scripts/sync_images.py \
+            --image-file "$INPUT_IMAGE_FILE" \
+            --images "$INPUT_IMAGES" \
+            --target-registry "$INPUT_TARGET_REGISTRY" \
+            --target-namespace "$INPUT_TARGET_NAMESPACE" \
+            --naming-style "$INPUT_NAMING_STYLE" \
+            --arch "$INPUT_ARCH" \
+            --concurrency "$INPUT_CONCURRENCY" \
+            --image-filter "$INPUT_IMAGE_FILTER" \
+            --sync-mode "$INPUT_SYNC_MODE" \
+            --tls-verify "$INPUT_TLS_VERIFY" \
+            --max-retries 3 \
+            --log-file "sync.log" \
+            --report-file "sync-report.json" \
+            --failed-file "failed-images.txt"
+
+      - name: Upload Sync Logs & Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sync-logs-${{ github.run_number }}
+          path: |
+            sync.log
+            sync-report.json
+            failed-images.txt
+          if-no-files-found: ignore
+          retention-days: 14
